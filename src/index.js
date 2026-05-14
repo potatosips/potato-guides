@@ -8,7 +8,7 @@ export default {
       "remote-wol-guide.potatosips.oporajita.win": "/Remote-wol-guide",
       "dnssec-dot-over-stubby.potatosips.oporajita.win": "/DNSSEC-DOT-over-stubby",
       "arch-baremetal-install.potatosips.oporajita.win": "/arch-bare-metal-install",
-      "cloudflare-ipv6-ddns.potatosips.oporajita.win": "/Cloudflare-ipv6-ddns-tutorial",
+      "cloudflare-ipv6-ddns.potatosips.oporajita.win": "/Cloudflare-ipv6-ddns",
       "openwrt-mesh-setup.potatosips.oporajita.win": "/openwrt-mesh-setup"
     };
 
