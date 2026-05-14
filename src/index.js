@@ -11,7 +11,8 @@ export default {
       "cloudflare-ipv6-ddns.potatosips.oporajita.win": "/Cloudflare-ipv6-ddns-windows",
       "openwrt-mesh-setup.potatosips.oporajita.win": "/openwrt-mesh-setup",
       "samba-on-arch.potatosips.oporajita.win": "/Samba-on-Arch",
-      "arch-on-azure.potatosips.oporajita.win": "/arch-on-azure"
+      "arch-on-azure.potatosips.oporajita.win": "/arch-on-azure",
+      "docker-filebrowser-image.potatosips.oporajita.win": "/docker-filebrowser-image"
     };
 
     const folder = routes[host];
