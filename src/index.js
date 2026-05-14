@@ -20,7 +20,7 @@ export default {
     const assetUrl = new URL(request.url);
 
     if (originalUrl.pathname === "/" || originalUrl.pathname === "") {
-      assetUrl.pathname = folder + "/";
+      assetUrl.pathname = folder + "/index.html";
     } else {
       assetUrl.pathname = folder + originalUrl.pathname;
     }
