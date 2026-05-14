@@ -4,9 +4,8 @@ export default {
     const host = url.hostname.toLowerCase();
 
     const routes = {
-      "batt-health-mi11x.potatosips.oporajita.win": "/sites/battery-health-check-Mi11x/",
-      "remote-wol-guide.potatosips.oporajita.win": "/sites/remote-wol-guide/",
-      "another-site.potatosips.oporajita.win": "/sites/another-site/",
+      "batt-health-mi11x.potatosips.oporajita.win": "/battery-health-check-Mi11x",
+      "remote-wol-guide.potatosips.oporajita.win": "/Remote-wol-guide"
     };
 
     const targetPath = routes[host];
