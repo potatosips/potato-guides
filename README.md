@@ -30,6 +30,8 @@
 
 🗂️ [set up samba because apparently it's still 1998](https://samba-on-arch.potatosips.oporajita.win/)
 
+🧬 [trap your files inside docker and pretend you’re organized](https://filebrowser-docker.potatosips.oporajita.win/)
+
 ---
 
 ```
