@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Samba on Arch Linux — File Server Setup Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161e;
+    --surface2: #1a1e2a;
+    --border: #252b3b;
+    --accent: #7ee8a2;
+    --accent2: #5bc4f5;
+    --accent3: #f5a623;
+    --accent4: #ff6b81;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0c10;
+    --green: #7ee8a2;
+    --blue: #5bc4f5;
+    --yellow: #f5a623;
+    --red: #ff6b81;
+    --purple: #c084fc;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── Sidebar nav ── */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 240px;
+    height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 0;
+    overflow-y: auto;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 0 24px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo .logo-icon {
+    font-size: 28px;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-logo h2 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .sidebar-logo p {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .nav-section {
+    padding: 0 16px;
+    margin-bottom: 4px;
+  }
+
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 8px 4px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .nav-link:hover {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .nav-link .num {
+    font-size: 10px;
+    color: var(--border);
+    min-width: 18px;
+  }
+
+  /* ── Main content ── */
+  .main {
+    margin-left: 240px;
+    padding: 60px 64px;
+    max-width: 960px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    margin-bottom: 72px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(126,232,162,0.08);
+    border: 1px solid rgba(126,232,162,0.2);
+    color: var(--green);
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 24px;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 span { color: var(--accent); }
+
+  .hero-desc {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 580px;
+    line-height: 1.7;
+    margin-bottom: 28px;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .meta-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .meta-chip .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  /* ── Sections ── */
+  .section {
+    margin-bottom: 64px;
+    animation: fadeUp 0.4s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .section-num {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .section h2 {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  .section h2 .emoji {
+    margin-right: 8px;
+  }
+
+  .section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .code-lang {
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .code-lang::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .code-lang.cmd::before { background: var(--blue); }
+  .code-lang.ini::before { background: var(--yellow); }
+  .code-lang.info::before { background: var(--purple); }
+
+  .code-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .code-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+
+  .code-dots span:nth-child(1) { background: #ff5f57; }
+  .code-dots span:nth-child(2) { background: #ffbd2e; }
+  .code-dots span:nth-child(3) { background: #28c840; }
+
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  code {
+    color: var(--accent);
+  }
+
+  pre code {
+    color: #c9d1d9;
+  }
+
+  /* Syntax-ish highlight via spans */
+  .cmd-key { color: var(--accent2); }
+  .cmd-flag { color: var(--yellow); }
+  .cmd-path { color: var(--green); }
+  .cmd-comment { color: var(--muted); font-style: italic; }
+  .ini-section { color: var(--purple); font-weight: bold; }
+  .ini-key { color: var(--blue); }
+  .ini-val { color: var(--accent); }
+
+  /* inline code */
+  p code, li code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-left: 3px solid;
+    display: flex;
+    gap: 12px;
+  }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout-body h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .callout-body p {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0;
+  }
+
+  .callout-body p code {
+    font-size: 11px;
+  }
+
+  .callout.warning {
+    background: rgba(245,166,35,0.07);
+    border-color: var(--yellow);
+  }
+  .callout.warning h4 { color: var(--yellow); }
+
+  .callout.danger {
+    background: rgba(255,107,129,0.07);
+    border-color: var(--red);
+  }
+  .callout.danger h4 { color: var(--red); }
+
+  .callout.tip {
+    background: rgba(126,232,162,0.07);
+    border-color: var(--green);
+  }
+  .callout.tip h4 { color: var(--green); }
+
+  .callout.info {
+    background: rgba(91,196,245,0.07);
+    border-color: var(--blue);
+  }
+  .callout.info h4 { color: var(--blue); }
+
+  /* ── Network diagram ── */
+  .diagram-box {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    color: #8892a4;
+    overflow-x: auto;
+  }
+
+  .diagram-box .hl { color: var(--green); font-weight: bold; }
+  .diagram-box .hl2 { color: var(--blue); font-weight: bold; }
+  .diagram-box .hl3 { color: var(--yellow); font-weight: bold; }
+
+  /* ── User table ── */
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    margin: 16px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .info-table th {
+    background: var(--surface2);
+    color: var(--muted);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .info-table tr:last-child td { border-bottom: none; }
+  .info-table tr:hover td { background: var(--surface2); }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .badge.green { background: rgba(126,232,162,0.15); color: var(--green); }
+  .badge.blue { background: rgba(91,196,245,0.15); color: var(--blue); }
+  .badge.red { background: rgba(255,107,129,0.15); color: var(--red); }
+
+  /* ── Troubleshooting cards ── */
+  .trouble-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .trouble-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .trouble-header .error-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--red);
+    font-weight: 700;
+  }
+
+  .trouble-body {
+    padding: 16px 18px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .trouble-body strong { color: var(--text); }
+
+  /* ── Steps with connector ── */
+  .steps {
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    left: 8px; top: 12px; bottom: 12px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--border));
+    border-radius: 2px;
+  }
+
+  .step {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .step::before {
+    content: '';
+    position: absolute;
+    left: -24px;
+    top: 8px;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--accent);
+  }
+
+  /* ── Divider ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, var(--border), transparent);
+    margin: 48px 0;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-family: 'Space Mono', monospace;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 32px 20px; }
+    .hero h1 { font-size: 34px; }
+  }
+
+  ul, ol { padding-left: 20px; margin-bottom: 14px; }
+  li { margin-bottom: 6px; color: var(--text); font-size: 14.5px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">🐧</div>
+    <h2>Samba Guide</h2>
+    <p>Arch Linux → Windows</p>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Getting Started</div>
+    <a class="nav-link" href="#intro"><span class="num">01</span> Introduction</a>
+    <a class="nav-link" href="#network"><span class="num">02</span> Network Overview</a>
+    <a class="nav-link" href="#mirrors"><span class="num">03</span> Fix Mirrors</a>
+    <a class="nav-link" href="#install"><span class="num">04</span> Install Samba</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Users & Config</div>
+    <a class="nav-link" href="#users"><span class="num">05</span> Create Users</a>
+    <a class="nav-link" href="#sambapass"><span class="num">06</span> Samba Passwords</a>
+    <a class="nav-link" href="#config"><span class="num">07</span> smb.conf</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Services & Access</div>
+    <a class="nav-link" href="#services"><span class="num">09</span> Start Services</a>
+    <a class="nav-link" href="#firewall"><span class="num">10</span> Firewall Fix</a>
+    <a class="nav-link" href="#testing"><span class="num">11</span> Test Locally</a>
+    <a class="nav-link" href="#windows"><span class="num">12</span> Connect Windows</a>
+    <a class="nav-link" href="#drives"><span class="num">13</span> Map Drives</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Reference</div>
+    <a class="nav-link" href="#troubleshoot"><span class="num">14</span> Troubleshooting</a>
+
+  </div>
+</nav>
+
+<!-- ══════════ MAIN ══════════ -->
+<main class="main">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <div class="hero-badge">Arch Linux Bare Metal Install · Samba File Server</div>
+    <h1>Set Up a <span>Samba</span><br>File Server on Arch</h1>
+    <p class="hero-desc">
+      A complete, step-by-step guide to installing and configuring Samba on a bare-metal Arch Linux machine and sharing files with a Windows client over your local network.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-chip"><span class="dot" style="background:var(--green)"></span>Server: 192.168.1.12</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--blue)"></span>Client: 192.168.1.4</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--yellow)"></span>Bare Metal Arch Linux</div>
+      <div class="meta-chip"><span class="dot" style="background:var(--purple)"></span>2 users · 2 shares</div>
+    </div>
+  </div>
+
+  <!-- ══════ 01 INTRO ══════ -->
+  <section class="section" id="intro">
+    <div class="section-header">
+      <div class="section-num">01</div>
+      <h2><span class="emoji">📖</span>Introduction</h2>
+    </div>
+
+    <p>
+      <strong>Samba</strong> is a free and open-source re-implementation of the SMB/CIFS networking protocol. It lets Linux and Unix machines share files and printers with Windows systems seamlessly — as if they were native Windows network shares.
+    </p>
+    <p>
+      This guide is written for a <strong>bare-metal Arch Linux installation</strong> (not a VM, not a container). You're working directly on real hardware, so every command and config tweak here applies to your actual system.
+    </p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <h4>What you'll achieve</h4>
+        <p>By the end, user <code>potato</code> will have access to the entire root filesystem (<code>/</code>) from Windows, and user <code>asmit</code> will have access to <code>/mnt/sda1</code> — both over your LAN.</p>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">🖥️</div>
+      <div class="callout-body">
+        <h4>Bare Metal Note</h4>
+        <p>Since this is a bare-metal install, all systemd services, network interfaces, and storage mounts reflect your physical machine. There are no hypervisor quirks or bridged adapters to worry about.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 02 NETWORK ══════ -->
+  <section class="section" id="network">
+    <div class="section-header">
+      <div class="section-num">02</div>
+      <h2><span class="emoji">🌐</span>Network Overview</h2>
+    </div>
+
+    <p>Here's what we're building. The Arch Linux box is the server; the Windows machine is the client. Both are on the same LAN subnet.</p>
+
+    <div class="diagram-box">
+<pre>
+  <span class="hl">[ Arch Linux Server ]</span>              <span class="hl2">[ Windows Client ]</span>
+  192.168.1.<span class="hl3">12</span>                        192.168.1.<span class="hl3">4</span>
+  ┌───────────────────┐              ┌─────────────────────┐
+  │  Samba (smbd)     │◄────SMB─────►│  File Explorer      │
+  │                   │   port 445   │  net use command    │
+  │  [rootfs] share   │──────────────► \\192.168.1.12\rootfs│
+  │  path: /          │              │  (user: potato)     │
+  │                   │              └─────────────────────┘
+  │  [data] share     │              ┌─────────────────────┐
+  │  path: /mnt/sda1  │──────────────► \\192.168.1.12\data │
+  └───────────────────┘              │  (user: asmit)      │
+                                     └─────────────────────┘
+
+  <span class="hl3">Router / Switch</span>  192.168.1.1
+  ─────────────────────────────────────
+  Both devices on the same /24 subnet
+</pre>
+    </div>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th>Host</th><th>IP Address</th><th>Role</th><th>OS</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>archlinux</td><td><code>192.168.1.12</code></td><td><span class="badge green">Server</span></td><td>Arch Linux (bare metal)</td></tr>
+        <tr><td>Windows PC</td><td><code>192.168.1.4</code></td><td><span class="badge blue">Client</span></td><td>Windows 10 / 11</td></tr>
+      </tbody>
+    </table>
+
+    <table class="info-table">
+      <thead>
+        <tr>
+          <th>Linux User</th><th>Samba Share</th><th>Path</th><th>Access</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>potato</code></td><td><code>rootfs</code></td><td><code>/</code></td><td><span class="badge red">Full Root</span></td></tr>
+        <tr><td><code>asmit</code></td><td><code>data</code></td><td><code>/mnt/sda1</code></td><td><span class="badge green">Data Drive</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════ 03 MIRRORS ══════ -->
+  <section class="section" id="mirrors">
+    <div class="section-header">
+      <div class="section-num">03</div>
+      <h2><span class="emoji">🔧</span>Fix Mirrors (if pacman fails)</h2>
+    </div>
+
+    <p>
+      On a fresh or long-idle Arch install, the default mirrorlist might be stale, giving you 404 errors when running <code>pacman</code>. Fix it with <code>reflector</code>, which automatically picks fast, up-to-date mirrors.
+    </p>
+
+    <h3># Method 1 — Automatic (recommended)</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo pacman</span> -S reflector
+<span class="cmd-key">sudo reflector</span> <span class="cmd-flag">--country</span> India,Singapore,Japan <span class="cmd-flag">--protocol</span> https <span class="cmd-flag">--latest</span> 10 <span class="cmd-flag">--sort</span> rate <span class="cmd-flag">--save</span> <span class="cmd-path">/etc/pacman.d/mirrorlist</span>
+<span class="cmd-key">sudo pacman</span> -Syy</code></pre>
+    </div>
+
+    <h3># Method 2 — Manual fallback</h3>
+    <p>If <code>reflector</code> itself won't download, edit the mirrorlist by hand:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo nano</span> <span class="cmd-path">/etc/pacman.d/mirrorlist</span></code></pre>
+    </div>
+
+    <p>Delete everything in the file and paste these three reliable mirrors:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang ini">mirrorlist</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="ini-key">Server</span> = https://mirror.rackspace.com/archlinux/$repo/os/$arch
+<span class="ini-key">Server</span> = https://mirrors.kernel.org/archlinux/$repo/os/$arch
+<span class="ini-key">Server</span> = https://mirror.pkgbuild.com/$repo/os/$arch</code></pre>
+    </div>
+
+    <p>Save with <kbd>Ctrl+O</kbd> → <kbd>Enter</kbd> → <kbd>Ctrl+X</kbd>, then force-refresh:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo pacman</span> -Syyu</code></pre>
+    </div>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <h4>Bare Metal Tip</h4>
+        <p>On a bare-metal Arch install the system clock might be wrong after a long uptime gap. Run <code>sudo timedatectl set-ntp true</code> and wait a few seconds before pacman operations if you get certificate/time errors.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 04 INSTALL ══════ -->
+  <section class="section" id="install">
+    <div class="section-header">
+      <div class="section-num">04</div>
+      <h2><span class="emoji">📦</span>Install Samba</h2>
+    </div>
+
+    <p>With mirrors working, install the <code>samba</code> package. This provides <code>smbd</code> (file/print sharing), <code>nmbd</code> (NetBIOS name service), and tools like <code>smbpasswd</code> and <code>smbclient</code>.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo pacman</span> -S samba
+<span class="cmd-key">which</span> smbpasswd</code></pre>
+    </div>
+
+    <p>The <code>which smbpasswd</code> command should return <code>/usr/bin/smbpasswd</code>. If it prints nothing, the installation failed — re-check your mirrors from the previous step.</p>
+  </section>
+
+  <!-- ══════ 05 USERS ══════ -->
+  <section class="section" id="users">
+    <div class="section-header">
+      <div class="section-num">05</div>
+      <h2><span class="emoji">👤</span>Create Linux Users</h2>
+    </div>
+
+    <p>
+      Samba requires that users exist as real Linux system accounts <em>before</em> you can add them to Samba's own password database. Create both users and set their Unix passwords:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo useradd</span> <span class="cmd-flag">-m</span> potato
+<span class="cmd-key">sudo useradd</span> <span class="cmd-flag">-m</span> asmit
+<span class="cmd-key">sudo passwd</span> potato
+<span class="cmd-key">sudo passwd</span> asmit</code></pre>
+    </div>
+
+    <div class="callout info">
+      <div class="callout-icon">ℹ️</div>
+      <div class="callout-body">
+        <h4>The -m flag</h4>
+        <p>The <code>-m</code> flag creates a home directory (<code>/home/potato</code>, <code>/home/asmit</code>). It's not strictly needed for Samba, but it's good practice for real user accounts.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 06 SAMBA PASS ══════ -->
+  <section class="section" id="sambapass">
+    <div class="section-header">
+      <div class="section-num">06</div>
+      <h2><span class="emoji">🔐</span>Add Samba User Passwords</h2>
+    </div>
+
+    <p>
+      Samba keeps its <em>own</em> separate password database (<code>/var/lib/samba/private/passdb.tdb</code>). A user can have a different Samba password from their Unix login password. Register both users:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo smbpasswd</span> <span class="cmd-flag">-a</span> potato
+<span class="cmd-key">sudo smbpasswd</span> <span class="cmd-flag">-a</span> asmit</code></pre>
+    </div>
+
+    <p>You'll be prompted to enter and confirm a Samba password for each user. These are the credentials Windows will use to authenticate.</p>
+
+    <div class="callout warning">
+      <div class="callout-icon">⚠️</div>
+      <div class="callout-body">
+        <h4>smbpasswd: command not found?</h4>
+        <p>This means Samba didn't install correctly. Re-run <code>sudo pacman -S samba</code> and verify that <code>which smbpasswd</code> returns a path.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 07 CONFIG ══════ -->
+  <section class="section" id="config">
+    <div class="section-header">
+      <div class="section-num">07</div>
+      <h2><span class="emoji">⚙️</span>Configure smb.conf</h2>
+    </div>
+
+    <p>
+      The main Samba configuration file lives at <code>/etc/samba/smb.conf</code>. On a fresh Arch install this file <strong>does not exist</strong> — you create it from scratch. Open it in nano:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo nano</span> <span class="cmd-path">/etc/samba/smb.conf</span></code></pre>
+    </div>
+
+    <p>Paste the following configuration exactly as shown:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang ini">smb.conf</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="ini-section">[global]</span>
+   <span class="ini-key">workgroup</span>     = <span class="ini-val">WORKGROUP</span>
+   <span class="ini-key">server string</span> = <span class="ini-val">Arch Samba Server</span>
+   <span class="ini-key">netbios name</span>  = <span class="ini-val">archlinux</span>
+   <span class="ini-key">security</span>      = <span class="ini-val">user</span>
+   <span class="ini-key">map to guest</span>  = <span class="ini-val">Bad User</span>
+
+<span class="ini-section">[rootfs]</span>
+   <span class="ini-key">path</span>        = <span class="ini-val">/</span>
+   <span class="ini-key">browsable</span>   = <span class="ini-val">yes</span>
+   <span class="ini-key">writable</span>    = <span class="ini-val">yes</span>
+   <span class="ini-key">valid users</span> = <span class="ini-val">potato</span>
+   <span class="ini-key">read only</span>   = <span class="ini-val">no</span>
+
+<span class="ini-section">[data]</span>
+   <span class="ini-key">path</span>        = <span class="ini-val">/mnt/sda1</span>
+   <span class="ini-key">browsable</span>   = <span class="ini-val">yes</span>
+   <span class="ini-key">writable</span>    = <span class="ini-val">yes</span>
+   <span class="ini-key">valid users</span> = <span class="ini-val">asmit</span>
+   <span class="ini-key">read only</span>   = <span class="ini-val">no</span></code></pre>
+    </div>
+
+    <p>Save with <kbd>Ctrl+O</kbd> → <kbd>Enter</kbd> → <kbd>Ctrl+X</kbd>. Then validate the config syntax:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>testparm</code></pre>
+    </div>
+
+    <p><code>testparm</code> loads the config and reports any syntax errors. If it ends with <em>"Loaded services file OK"</em> you're good to go.</p>
+
+    <div class="callout info">
+      <div class="callout-icon">🔑</div>
+      <div class="callout-body">
+        <h4>Key directives explained</h4>
+        <p><code>security = user</code> — require username/password login. <code>map to guest = Bad User</code> — failed logins silently map to the guest account (harmless with no guest share). <code>valid users</code> — whitelist exactly which Linux users can access each share.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 08 PERMS ══════ -->
+
+  <!-- ══════ 09 SERVICES ══════ -->
+  <section class="section" id="services">
+    <div class="section-header">
+      <div class="section-num">09</div>
+      <h2><span class="emoji">▶️</span>Start Samba Services</h2>
+    </div>
+
+    <p>
+      Samba runs as two systemd services: <code>smb</code> (the SMB/CIFS file server) and <code>nmb</code> (NetBIOS name broadcasting — lets Windows discover the server by hostname). Enable and start both:
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo systemctl</span> enable <span class="cmd-flag">--now</span> smb nmb
+<span class="cmd-key">sudo systemctl</span> status smb
+<span class="cmd-key">sudo systemctl</span> status nmb</code></pre>
+    </div>
+
+    <p>Both services should show <strong style="color:var(--green)">active (running)</strong> in green. The <code>--now</code> flag means "enable at boot AND start immediately."</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <h4>After every config change</h4>
+        <p>If you edit <code>smb.conf</code> later, run <code>sudo systemctl restart smb nmb</code> to apply the changes without rebooting.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 10 FIREWALL ══════ -->
+  <section class="section" id="firewall">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2><span class="emoji">🔥</span>Firewall Fix (Critical!)</h2>
+    </div>
+
+    <p>
+      This is the <strong>most common reason Samba "works" locally but Windows can't connect</strong>. UFW (Uncomplicated Firewall) blocks SMB ports by default. Open the four required ports:
+    </p>
+
+    <table class="info-table">
+      <thead><tr><th>Port</th><th>Protocol</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>137/udp</code></td><td>UDP</td><td>NetBIOS Name Service</td></tr>
+        <tr><td><code>138/udp</code></td><td>UDP</td><td>NetBIOS Datagram Service</td></tr>
+        <tr><td><code>139/tcp</code></td><td>TCP</td><td>NetBIOS Session Service (legacy SMB)</td></tr>
+        <tr><td><code>445/tcp</code></td><td>TCP</td><td>Direct SMB over TCP (modern, required)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo systemctl</span> enable <span class="cmd-flag">--now</span> ufw
+<span class="cmd-key">sudo ufw</span> allow 137/udp
+<span class="cmd-key">sudo ufw</span> allow 138/udp
+<span class="cmd-key">sudo ufw</span> allow 139/tcp
+<span class="cmd-key">sudo ufw</span> allow 445/tcp
+<span class="cmd-key">sudo ufw</span> reload
+<span class="cmd-key">sudo ufw</span> status</code></pre>
+    </div>
+
+    <h3># Temporary: disable firewall for testing</h3>
+    <p>If Windows still can't connect after opening ports, temporarily disable UFW to confirm the firewall is the culprit:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">sudo ufw</span> disable   <span class="cmd-comment"># disable for testing only — re-enable after!</span></code></pre>
+    </div>
+
+    <div class="callout danger">
+      <div class="callout-icon">🚨</div>
+      <div class="callout-body">
+        <h4>Don't leave the firewall disabled</h4>
+        <p>Re-enable it with <code>sudo ufw enable</code> once you've confirmed connectivity. Running Samba without a firewall on a shared network exposes your entire filesystem.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════ 11 TESTING ══════ -->
+  <section class="section" id="testing">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2><span class="emoji">🧪</span>Test Samba Locally</h2>
+    </div>
+
+    <p>Before touching Windows, verify Samba is working from the Linux machine itself using <code>smbclient</code>:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>smbclient -L localhost -U potato</code></pre>
+    </div>
+
+    <p>Enter potato's Samba password when prompted. You should see a share list like:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang info">expected output</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>Sharename       Type      Comment
+---------       ----      -------
+rootfs          Disk
+data            Disk
+IPC$            IPC       IPC Service</code></pre>
+    </div>
+
+    <h3># Verify Samba is listening on port 445</h3>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang">bash</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code><span class="cmd-key">ip a</span>                           <span class="cmd-comment"># confirm your IP is 192.168.1.12</span>
+<span class="cmd-key">ss</span> <span class="cmd-flag">-tulnp</span> | grep 445          <span class="cmd-comment"># confirm smbd is listening</span></code></pre>
+    </div>
+
+    <p>The <code>ss</code> command should show <code>smbd</code> listening on <code>0.0.0.0:445</code>.</p>
+  </section>
+
+  <!-- ══════ 12 WINDOWS ══════ -->
+  <section class="section" id="windows">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2><span class="emoji">🪟</span>Connect from Windows</h2>
+    </div>
+
+    <p>Open <strong>Command Prompt</strong> on the Windows machine (<kbd>Win + R</kbd> → <code>cmd</code> → Enter):</p>
+
+    <h3># Step 1 — Verify network connectivity</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang cmd">cmd (Windows)</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>ping 192.168.1.12</code></pre>
+    </div>
+
+    <p>You should get replies. If not, the machines can't reach each other — check your router/switch.</p>
+
+    <h3># Step 2 — Clear old Windows credentials</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang cmd">cmd (Windows)</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>net use * /delete</code></pre>
+    </div>
+
+    <h3># Step 3 — Map the shares</h3>
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang cmd">cmd (Windows)</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>net use \\192.168.1.12\rootfs /user:potato
+net use \\192.168.1.12\data   /user:asmit</code></pre>
+    </div>
+
+    <p>Enter the respective Samba passwords when prompted. A success message means the shares are mounted.</p>
+  </section>
+
+  <!-- ══════ 13 DRIVES ══════ -->
+  <section class="section" id="drives">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <h2><span class="emoji">📂</span>Access via Windows Explorer</h2>
+    </div>
+
+    <p>Open File Explorer and type any of these directly into the address bar:</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <div class="code-lang info">Explorer address bar</div>
+        <div class="code-dots"><span></span><span></span><span></span></div>
+      </div>
+      <pre><code>\\192.168.1.12            <span class="cmd-comment">← Browse all shares</span>
+\\192.168.1.12\rootfs     <span class="cmd-comment">← potato's root share</span>
+\\192.168.1.12\data       <span class="cmd-comment">← asmit's data share</span></code></pre>
+    </div>
+
+    <p>You can also right-click <strong>This PC</strong> → <strong>Map network drive</strong> → enter the path → check "Connect using different credentials" → enter the Samba user and password.</p>
+
+    <div class="callout tip">
+      <div class="callout-icon">💡</div>
+      <div class="callout-body">
+        <h4>Persistent drive mapping</h4>
+        <p>To auto-mount at login, check <strong>"Reconnect at sign-in"</strong> when mapping the drive in Explorer, or use <code>net use Z: \\192.168.1.12\rootfs /user:potato /persistent:yes</code> in CMD.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ══════ 14 TROUBLESHOOT ══════ -->
+  <section class="section" id="troubleshoot">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <h2><span class="emoji">🚨</span>Troubleshooting</h2>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">smbpasswd: command not found</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> Samba package didn't install. <br>
+        <strong>Fix:</strong> Run <code>sudo pacman -S samba</code> again. If pacman fails with 404 errors, fix your mirrors first (Section 03).
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">pacman: 404 Not Found (failed retrieving file)</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> Stale mirrorlist — the package databases are outdated. <br>
+        <strong>Fix:</strong> Follow Section 03 to update mirrors with <code>reflector</code> or manually paste three working servers, then run <code>sudo pacman -Syyu</code>.
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Can't load /etc/samba/smb.conf - run testparm to debug it</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> The config file is missing or has a syntax error. <br>
+        <strong>Fix:</strong> Run <code>testparm</code> and read the output carefully. Common mistakes: wrong indentation, typos in key names, missing section headers. Make sure the file is at <code>/etc/samba/smb.conf</code> (not <code>~/.smb.conf</code>).
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Windows cannot access \\192.168.1.12</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> Usually firewall blocking port 445, wrong IP, or smbd not running. <br>
+        <strong>Fix:</strong> Check in order: (1) <code>ping 192.168.1.12</code> from Windows — if this fails it's a network issue. (2) <code>sudo ufw status</code> on Linux — make sure ports 137–139 UDP/TCP and 445 TCP are ALLOW. (3) <code>sudo systemctl status smb</code> — make sure it's running.
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Firewall blocking connection</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Fix — check UFW rules:</strong>
+        <div class="code-block" style="margin:10px 0 0">
+          <div class="code-header"><div class="code-lang">bash</div><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="cmd-key">sudo iptables</span> <span class="cmd-flag">-L</span>   <span class="cmd-comment"># view raw iptables rules</span>
+<span class="cmd-key">sudo ufw</span> status verbose</code></pre>
+        </div>
+        Re-run all <code>ufw allow</code> commands from Section 10, then <code>sudo ufw reload</code>.
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Wrong IP / server unreachable</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Fix:</strong> Confirm the server's actual IP:
+        <div class="code-block" style="margin:10px 0 0">
+          <div class="code-header"><div class="code-lang">bash</div><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code><span class="cmd-key">ip a</span>   <span class="cmd-comment"># look for inet under your NIC (e.g. eth0, enp3s0)</span></code></pre>
+        </div>
+        Update your <code>net use</code> / Explorer path if the IP has changed (assign a static IP or DHCP reservation to avoid this).
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Permission denied when accessing share</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> Linux filesystem permissions don't allow the Samba user to read/write the path. <br>
+        <strong>Fix:</strong> Make sure the <code>path</code> in smb.conf is accessible by the <code>valid users</code> account. For <code>/mnt/sda1</code>, confirm <code>sudo chown -R asmit:asmit /mnt/sda1</code> was run. Check with <code>ls -la /mnt/sda1</code>.
+      </div>
+    </div>
+
+    <div class="trouble-card">
+      <div class="trouble-header">
+        <span>💥</span>
+        <span class="error-tag">Windows keeps prompting for password / cached credentials</span>
+      </div>
+      <div class="trouble-body">
+        <strong>Cause:</strong> Windows cached old/wrong credentials from a previous failed attempt. <br>
+        <strong>Fix:</strong> Open <strong>Credential Manager</strong> (Control Panel → User Accounts → Credential Manager) → Windows Credentials → remove any entry for <code>192.168.1.12</code>. Then in CMD:
+        <div class="code-block" style="margin:10px 0 0">
+          <div class="code-header"><div class="code-lang cmd">cmd</div><div class="code-dots"><span></span><span></span><span></span></div></div>
+          <pre><code>net use * /delete</code></pre>
+        </div>
+        Then reconnect with the correct password.
+      </div>
+    </div>
+  </section>
+
+
+  <div class="footer" style="margin-top:48px; border-top:1px solid var(--border); padding-top:32px;">
+    <span>🐧 Arch Linux Bare Metal · Samba File Server Guide</span>
+    <span>Written for 192.168.1.12 → 192.168.1.4 · <a href="#intro">Back to top ↑</a></span>
+  </div>
+
+</main>
+</body>
+</html>
