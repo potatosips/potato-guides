@@ -10,7 +10,8 @@ export default {
       "arch-baremetal-install.potatosips.oporajita.win": "/arch-baremetal-install",
       "cloudflare-ipv6-ddns.potatosips.oporajita.win": "/Cloudflare-ipv6-ddns-windows",
       "openwrt-mesh-setup.potatosips.oporajita.win": "/openwrt-mesh-setup",
-      "samba-on-arch.potatosips.oporajita.win": "/Samba-on-Arch"
+      "samba-on-arch.potatosips.oporajita.win": "/Samba-on-Arch",
+      "arch-on-azure.potatosips.oporajita.win": "/arch-on-azure"
     };
 
     const folder = routes[host];
