@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arch Linux Install Guide — For the Brave & the Sleepless</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Bebas+Neue&family=Inter:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --surface: #13161b;
+    --surface2: #1a1e26;
+    --border: #252b36;
+    --accent: #1793d1;
+    --accent2: #00d4aa;
+    --warn: #f0a500;
+    --danger: #e05252;
+    --text: #c8cdd6;
+    --muted: #5a6272;
+    --bright: #eaeef5;
+    --code-bg: #0a0c0f;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* === HEADER === */
+  header {
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, #0a0c10 0%, var(--bg) 100%);
+    padding: 60px 40px 50px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(23,147,209,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .arch-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(48px, 8vw, 96px);
+    letter-spacing: 4px;
+    color: var(--bright);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .arch-logo span { color: var(--accent); }
+
+  .tagline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .description {
+    max-width: 680px;
+    font-size: 15px;
+    color: var(--text);
+    border-left: 3px solid var(--accent);
+    padding-left: 20px;
+    line-height: 1.8;
+  }
+
+  .description em {
+    color: var(--accent2);
+    font-style: normal;
+  }
+
+  /* === LAYOUT === */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* === STEP === */
+  .step {
+    margin-top: 48px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--surface);
+    transition: border-color 0.2s;
+  }
+
+  .step:hover { border-color: #2e3647; }
+
+  .step-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    background: rgba(23,147,209,0.08);
+    border: 1px solid rgba(23,147,209,0.2);
+    border-radius: 4px;
+    padding: 4px 10px;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    letter-spacing: 2px;
+    color: var(--bright);
+    line-height: 1.1;
+  }
+
+  .step-desc {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.6;
+  }
+
+  .step-desc .dark {
+    color: var(--warn);
+    font-style: italic;
+  }
+
+  .step-body { padding: 24px 28px; }
+
+  /* === CODE BLOCKS === */
+  .code-wrap {
+    position: relative;
+    margin: 16px 0;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .code-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--code-bg);
+    padding: 6px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .copy-btn {
+    background: rgba(23,147,209,0.1);
+    border: 1px solid rgba(23,147,209,0.2);
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .copy-btn:hover {
+    background: rgba(23,147,209,0.2);
+    border-color: var(--accent);
+  }
+
+  .copy-btn.copied {
+    color: var(--accent2);
+    border-color: var(--accent2);
+    background: rgba(0,212,170,0.1);
+  }
+
+  pre {
+    background: var(--code-bg);
+    padding: 18px 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    color: #abb2bf;
+  }
+
+  .c  { color: var(--muted); font-style: italic; }   /* comment */
+  .kw { color: var(--accent); }                        /* keyword / command */
+  .fl { color: var(--accent2); }                       /* flag */
+  .vr { color: var(--warn); }                          /* variable / placeholder */
+  .st { color: #e06c75; }                              /* string */
+  .nt { color: #56b6c2; }                              /* note */
+
+  /* === NOTES / CALLOUTS === */
+  .callout {
+    display: flex;
+    gap: 14px;
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin: 16px 0;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .callout.info { background: rgba(23,147,209,0.07); border: 1px solid rgba(23,147,209,0.2); color: #7bb8d8; }
+  .callout.warn { background: rgba(240,165,0,0.07); border: 1px solid rgba(240,165,0,0.2); color: #c8992a; }
+  .callout.danger { background: rgba(224,82,82,0.07); border: 1px solid rgba(224,82,82,0.2); color: #c07070; }
+
+  /* === BIFURCATION (UEFI vs BIOS) === */
+  .fork {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 640px) { .fork { grid-template-columns: 1fr; } }
+
+  .fork-card {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .fork-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fork-card.uefi .fork-title { background: rgba(23,147,209,0.1); color: var(--accent); }
+  .fork-card.bios .fork-title { background: rgba(240,165,0,0.1); color: var(--warn); }
+
+  .fork-card pre { font-size: 12px; padding: 14px 16px; }
+
+  /* === INLINE CODE === */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--accent2);
+  }
+
+  /* === PLACEHOLDER NOTE === */
+  .placeholder-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 4px;
+    border-left: 3px solid var(--border);
+  }
+
+  .placeholder-note span { color: var(--warn); }
+
+  /* === FOOTER === */
+  footer {
+    margin-top: 72px;
+    border-top: 1px solid var(--border);
+    padding: 32px 24px;
+    text-align: center;
+  }
+
+  .footer-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  .footer-text a { color: var(--accent); text-decoration: none; }
+
+  /* === TOC === */
+  .toc {
+    margin-top: 40px;
+    padding: 20px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .toc-title {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 3px;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  .toc-list {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toc-list a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+
+  .toc-list a:hover { color: var(--accent); border-color: rgba(23,147,209,0.3); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="arch-logo"><span>Arch</span> Linux</div>
+    <div class="tagline">Bare Metal Install Guide — 2025 Edition</div>
+    <p class="description">
+      A step-by-step guide for people who looked at Ubuntu and thought
+      <em>"nah, I want to suffer more intentionally."</em>
+      No GUI. No hand-holding. Just you, a terminal, and the haunting
+      question of whether you partitioned the right disk.
+    </p>
+  </div>
+</header>
+
+<div class="container">
+
+  <nav class="toc">
+    <div class="toc-title">// Table of Contents</div>
+    <ul class="toc-list">
+      <li><a href="#s1">01 · SSH Access</a></li>
+      <li><a href="#s2">02 · Time Sync</a></li>
+      <li><a href="#s3">03 · WiFi</a></li>
+      <li><a href="#s4">04 · Partitioning</a></li>
+      <li><a href="#s5">05 · Format &amp; Mount</a></li>
+      <li><a href="#s6">06 · Mirrors</a></li>
+      <li><a href="#s7">07 · Pacstrap</a></li>
+      <li><a href="#s8">08 · fstab</a></li>
+      <li><a href="#s9">09 · Chroot</a></li>
+      <li><a href="#s10">10 · System Config</a></li>
+      <li><a href="#s11">11 · Bootloader</a></li>
+      <li><a href="#s12">12 · Reboot</a></li>
+    </ul>
+  </nav>
+
+  <!-- STEP 1 -->
+  <div class="step" id="s1">
+    <div class="step-header">
+      <div class="step-num">STEP 01</div>
+      <div>
+        <div class="step-title">Optional SSH Access</div>
+        <div class="step-desc">Because typing on a laptop balanced on your knees is a <span class="dark">great way to destroy your spine</span> and mistype <code>/dev/sda</code>.</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="callout info"><span class="callout-icon">ℹ</span>Do this on the live ISO before anything else if you prefer copy-pasting from a comfy machine.</div>
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="c"># Find your IP address</span>
+<span class="kw">ip</span> a
+
+<span class="c"># Set a password for the live session (NOT your real machine)</span>
+<span class="kw">passwd</span></pre>
+      </div>
+      <p class="placeholder-note">Then SSH in from another machine: <span>ssh root@&lt;IP_FROM_ip_a&gt;</span></p>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="step" id="s2">
+    <div class="step-header">
+      <div class="step-num">STEP 02</div>
+      <div>
+        <div class="step-title">Sync the Clock</div>
+        <div class="step-desc">Your system clock is probably wrong. Like most things in your life right now. <span class="dark">Fix this one at least.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">timedatectl</span> <span class="fl">set-ntp</span> true</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="step" id="s3">
+    <div class="step-header">
+      <div class="step-num">STEP 03</div>
+      <div>
+        <div class="step-title">Connect to WiFi</div>
+        <div class="step-desc">Skip if using ethernet, you sensible person. Otherwise, enter <code>iwctl</code>'s little interactive dungeon. <span class="dark">It's not as bad as it looks. It's worse.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">iwctl</span>
+<span class="c">  # Now inside iwctl interactive prompt:</span>
+  <span class="nt">device list</span>                                <span class="c"># find your WiFi adapter name</span>
+  <span class="nt">station</span> <span class="vr">&lt;device&gt;</span> <span class="nt">scan</span>                     <span class="c"># scan for networks</span>
+  <span class="nt">station</span> <span class="vr">&lt;device&gt;</span> <span class="nt">get-networks</span>             <span class="c"># list them</span>
+  <span class="nt">station</span> <span class="vr">&lt;device&gt;</span> <span class="nt">connect</span> <span class="vr">&lt;SSID&gt;</span>           <span class="c"># connect (enter password when asked)</span>
+  <span class="nt">exit</span></pre>
+      </div>
+      <p class="placeholder-note">Replace <span>&lt;device&gt;</span> (e.g. <code>wlan0</code>) and <span>&lt;SSID&gt;</span> with your network name.</p>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="step" id="s4">
+    <div class="step-header">
+      <div class="step-num">STEP 04</div>
+      <div>
+        <div class="step-title">Partition the Disk</div>
+        <div class="step-desc"><span class="dark">This is the part where you accidentally wipe your Windows partition and discover inner peace.</span> Double-check you're targeting the right disk.</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="callout danger"><span class="callout-icon">⚠</span><strong>Verify your disk name first</strong> with <code>lsblk</code>. Assumes <code>/dev/sda</code> — yours may be <code>/dev/nvme0n1</code> or <code>/dev/vda</code>. Destroying data on the wrong disk is a timeless tradition you do not want to join.</div>
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">cfdisk</span> /dev/sda</pre>
+      </div>
+      <div class="callout info">
+        <span class="callout-icon">📋</span>
+        <div>
+          Inside cfdisk, create a <strong>GPT</strong> partition table, then:<br>
+          <strong>1)</strong> New → 512M → Type: <em>EFI System</em><br>
+          <strong>2)</strong> New → remaining space → Type: <em>Linux filesystem</em><br>
+          Then → <strong>Write</strong> → type <code>yes</code> → <strong>Quit</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="step" id="s5">
+    <div class="step-header">
+      <div class="step-num">STEP 05</div>
+      <div>
+        <div class="step-title">Format &amp; Mount</div>
+        <div class="step-desc">Give your partitions a filesystem. Like giving a house walls and a floor. Except you're doing it in the dark. <span class="dark">With a blindfold. And the house is on fire.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="c"># Format partitions</span>
+<span class="kw">mkfs.fat</span> <span class="fl">-F32</span> /dev/sda1        <span class="c"># EFI partition</span>
+<span class="kw">mkfs.ext4</span> /dev/sda2             <span class="c"># root partition</span>
+
+<span class="c"># Mount them</span>
+<span class="kw">mount</span> /dev/sda2 /mnt
+<span class="kw">mkdir</span> <span class="fl">-p</span> /mnt/boot
+<span class="kw">mount</span> /dev/sda1 /mnt/boot</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="step" id="s6">
+    <div class="step-header">
+      <div class="step-num">STEP 06</div>
+      <div>
+        <div class="step-title">Set Mirrors</div>
+        <div class="step-desc">Default mirrors are often painfully slow. <span class="dark">Like queuing at a government office, but for packages.</span> Use local Bangladeshi mirrors for speed.</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">nano</span> /etc/pacman.d/mirrorlist
+
+<span class="c"># Add these at the TOP of the file (BD mirrors — fast locally):</span>
+<span class="st">Server = http://mirror.limda.net/archlinux/$repo/os/$arch</span>
+<span class="st">Server = https://mirror.limda.net/archlinux/$repo/os/$arch</span>
+<span class="st">Server = http://mirror.xeonbd.com/archlinux/$repo/os/$arch</span>
+<span class="st">Server = https://mirror.xeonbd.com/archlinux/$repo/os/$arch</span></pre>
+      </div>
+      <p class="placeholder-note">Save with <span>Ctrl+O</span>, exit with <span>Ctrl+X</span>. If you don't know nano keybinds yet... welcome.</p>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="step" id="s7">
+    <div class="step-header">
+      <div class="step-num">STEP 07</div>
+      <div>
+        <div class="step-title">Install Base System</div>
+        <div class="step-desc">This is the moment. The whole OS gets bootstrapped. <span class="dark">Go make tea. Contemplate your choices. Come back in 3 minutes.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">pacstrap</span> /mnt base linux linux-firmware nano openssh btop networkmanager</pre>
+      </div>
+      <div class="callout info"><span class="callout-icon">💡</span>Add more packages here if you want them pre-installed — e.g. <code>vim git sudo</code>. It's cheaper now than re-entering chroot later.</div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="step" id="s8">
+    <div class="step-header">
+      <div class="step-num">STEP 08</div>
+      <div>
+        <div class="step-title">Generate fstab</div>
+        <div class="step-desc">Tell the system how to find its own partitions on boot. <span class="dark">Yes, it forgets. Like a goldfish. A goldfish that runs your OS.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">genfstab</span> <span class="fl">-U</span> /mnt >> /mnt/etc/fstab
+
+<span class="c"># Verify it looks sane (2 entries expected)</span>
+<span class="kw">cat</span> /mnt/etc/fstab</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="step" id="s9">
+    <div class="step-header">
+      <div class="step-num">STEP 09</div>
+      <div>
+        <div class="step-title">Enter chroot</div>
+        <div class="step-desc">You are now <em>inside</em> the new system. <span class="dark">Like Inception, but less cool and with more potential for bricking things.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">arch-chroot</span> /mnt</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 10 -->
+  <div class="step" id="s10">
+    <div class="step-header">
+      <div class="step-num">STEP 10</div>
+      <div>
+        <div class="step-title">System Configuration</div>
+        <div class="step-desc">Set your hostname, timezone, locale, and root password. <span class="dark">All the things you'll forget you set and have to look up in 6 months.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="c"># Hostname — name your machine. Be creative. Or don't.</span>
+<span class="kw">echo</span> <span class="st">"<span class="vr">myhostname</span>"</span> > /etc/hostname
+
+<span class="c"># Timezone — symlink your zone</span>
+<span class="kw">ln</span> <span class="fl">-sf</span> /usr/share/zoneinfo/<span class="vr">Asia/Dhaka</span> /etc/localtime
+<span class="kw">hwclock</span> <span class="fl">--systohc</span>
+
+<span class="c"># Locale</span>
+<span class="kw">echo</span> <span class="st">"en_US.UTF-8 UTF-8"</span> >> /etc/locale.gen
+<span class="kw">locale-gen</span>
+<span class="kw">echo</span> <span class="st">"LANG=en_US.UTF-8"</span> > /etc/locale.conf
+
+<span class="c"># Root password (don't use "password". Or do. I'm a guide, not your dad.)</span>
+<span class="kw">passwd</span>
+
+<span class="c"># Enable SSH and NetworkManager on boot</span>
+<span class="kw">systemctl</span> enable sshd
+<span class="kw">systemctl</span> enable NetworkManager</pre>
+      </div>
+      <p class="placeholder-note">Replace <span>myhostname</span> and <span>Asia/Dhaka</span> with your actual hostname and timezone. List zones: <code>ls /usr/share/zoneinfo/</code></p>
+    </div>
+  </div>
+
+  <!-- STEP 11 -->
+  <div class="step" id="s11">
+    <div class="step-header">
+      <div class="step-num">STEP 11</div>
+      <div>
+        <div class="step-title">Install Bootloader (GRUB)</div>
+        <div class="step-desc">The thing that actually starts your system. <span class="dark">If you get this wrong, you'll get to meet the GRUB rescue shell. It's very minimalist. You'll hate it.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="callout warn"><span class="callout-icon">⚡</span>Not sure if you have UEFI or Legacy BIOS? Check: <code>ls /sys/firmware/efi</code> — if the directory exists, you're UEFI. Pick accordingly.</div>
+      <div class="fork">
+        <div class="fork-card uefi">
+          <div class="fork-title">⚡ UEFI / Modern Systems</div>
+          <div class="code-wrap" style="border:none;border-radius:0;margin:0;">
+            <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+            <pre><span class="kw">pacman</span> <span class="fl">-S</span> grub efibootmgr
+
+<span class="kw">grub-install</span> \
+  <span class="fl">--target=</span>x86_64-efi \
+  <span class="fl">--efi-directory=</span>/boot \
+  <span class="fl">--bootloader-id=</span>GRUB
+
+<span class="kw">grub-mkconfig</span> \
+  <span class="fl">-o</span> /boot/grub/grub.cfg</pre>
+          </div>
+        </div>
+        <div class="fork-card bios">
+          <div class="fork-title">🖥 Legacy BIOS / Old Iron</div>
+          <div class="code-wrap" style="border:none;border-radius:0;margin:0;">
+            <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+            <pre><span class="kw">pacman</span> <span class="fl">-S</span> grub
+
+<span class="kw">grub-install</span> \
+  <span class="fl">--target=</span>i386-pc \
+  /dev/sda
+
+<span class="kw">grub-mkconfig</span> \
+  <span class="fl">-o</span> /boot/grub/grub.cfg</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 12 -->
+  <div class="step" id="s12">
+    <div class="step-header">
+      <div class="step-num">STEP 12</div>
+      <div>
+        <div class="step-title">Exit, Unmount &amp; Reboot</div>
+        <div class="step-desc">The moment of truth. <span class="dark">Either it boots, or you spend the next hour googling from your phone like a peasant.</span></div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="code-wrap">
+        <div class="code-label">bash <button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="kw">exit</span>                    <span class="c"># leave chroot</span>
+<span class="kw">umount</span> <span class="fl">-R</span> /mnt          <span class="c"># unmount everything cleanly</span>
+<span class="kw">reboot</span>                  <span class="c"># this is it. godspeed.</span></pre>
+      </div>
+      <div class="callout info"><span class="callout-icon">🎉</span>If it boots: congratulations, you've joined a long tradition of people who could have just used Manjaro but didn't. If it doesn't boot: welcome to the forums. Bring snacks.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="container">
+    <p class="footer-text">
+      Arch Linux Bare Metal Install Guide &nbsp;·&nbsp;
+      <a href="https://wiki.archlinux.org" target="_blank">wiki.archlinux.org</a> is your real best friend &nbsp;·&nbsp;
+      No warranty. No refunds. No sleep.
+    </p>
+  </div>
+</footer>
+
+<script>
+function copyCode(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'copy';
+      btn.classList.remove('copied');
+    }, 1800);
+  });
+}
+</script>
+</body>
+</html>
