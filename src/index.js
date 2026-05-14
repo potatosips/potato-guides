@@ -12,7 +12,7 @@ export default {
       "openwrt-mesh-setup.potatosips.oporajita.win": "/openwrt-mesh-setup",
       "samba-on-arch.potatosips.oporajita.win": "/Samba-on-Arch",
       "arch-on-azure.potatosips.oporajita.win": "/arch-on-azure",
-      "docker-filebrowser-image.potatosips.oporajita.win": "/docker-filebrowser-image"
+      "filebrowser-docker.potatosips.oporajita.win": "/docker-filebrowser-image"
     };
 
     const folder = routes[host];
