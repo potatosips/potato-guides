@@ -3,1125 +3,923 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POTATOSIPS // REMOTE WoL // VPS · WIREGUARD · OPENWRT · NGINX</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<title>Mi 11X Battery Health Check Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --orange: #ff6b1a;
-    --amber: #ffaa00;
-    --green: #39ff14;
-    --cyan: #00e5ff;
-    --red: #ff2233;
-    --bg: #0a0600;
-    --bg2: #110900;
-    --surface: #160c00;
-    --surface2: #1e1100;
-    --border: #3a1f00;
-    --text: #e8d4b8;
-    --dim: #6b4a22;
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --green: #00ff9d;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: #1e293b;
   }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Exo 2', sans-serif;
-    font-weight: 300;
-    line-height: 1.75;
+    font-family: 'Syne', sans-serif;
+    line-height: 1.6;
     overflow-x: hidden;
   }
 
-  /* scanlines */
+  /* Animated background grid */
   body::before {
     content: '';
-    position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px);
-    pointer-events: none; z-index: 9999;
-  }
-
-  /* grid */
-  body::after {
-    content: '';
-    position: fixed; inset: 0;
+    position: fixed;
+    inset: 0;
     background-image:
-      linear-gradient(rgba(255,107,26,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,107,26,0.025) 1px, transparent 1px);
-    background-size: 44px 44px;
-    pointer-events: none; z-index: 0;
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    pointer-events: none;
   }
 
-  /* ── HEADER ── */
-  header {
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
     position: relative;
-    padding: 64px 40px 44px;
+    z-index: 1;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    padding: 80px 0 60px;
     text-align: center;
-    border-bottom: 1px solid var(--border);
-    overflow: hidden;
-  }
-  header::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse 80% 55% at 50% -10%, rgba(255,107,26,0.09) 0%, transparent 70%);
-  }
-
-  .section-label {
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    color: var(--dim);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  h1 {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(1.6rem, 4.5vw, 3.2rem);
-    font-weight: 900;
-    color: var(--orange);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     position: relative;
-    animation: flicker 9s infinite;
-  }
-  h1::before, h1::after {
-    content: attr(data-text);
-    position: absolute; top: 0; left: 0; width: 100%;
-  }
-  h1::before { color: var(--cyan); opacity: 0.4; animation: glitch1 5s infinite; clip-path: polygon(0 20%, 100% 20%, 100% 45%, 0 45%); }
-  h1::after  { color: var(--red);  opacity: 0.3; animation: glitch2 7s infinite; clip-path: polygon(0 65%, 100% 65%, 100% 85%, 0 85%); }
-
-  @keyframes glitch1 { 0%,93%,100%{transform:translate(0)} 94%{transform:translate(-4px,1px)} 96%{transform:translate(3px,-1px)} }
-  @keyframes glitch2 { 0%,95%,100%{transform:translate(0)} 96%{transform:translate(4px,2px)} 98%{transform:translate(-3px,-2px)} }
-  @keyframes flicker { 0%,94%,100%{opacity:1} 95%{opacity:.8} 96%{opacity:1} 97%{opacity:.85} }
-
-  .tagline {
-    margin-top: 10px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--amber);
-    letter-spacing: 0.18em;
   }
 
-  .hero-humor {
-    margin: 24px auto 0;
-    max-width: 700px;
-    background: rgba(255,107,26,0.05);
-    border: 1px solid rgba(255,107,26,0.2);
-    border-left: 3px solid var(--orange);
-    padding: 12px 20px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.78rem;
-    color: var(--amber);
-    text-align: left;
-  }
-  .hero-humor::before { content: '// '; color: var(--dim); }
-
-  /* ── FLOW ── */
-  .flow-wrap {
-    overflow-x: auto;
-    padding: 20px 0 8px;
-  }
-  .flow {
-    display: flex;
+  .hero-badge {
+    display: inline-flex;
     align-items: center;
-    gap: 0;
-    min-width: max-content;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem;
+    gap: 8px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.25);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-bottom: 28px;
+    animation: fadeDown 0.6s ease both;
   }
-  .flow-node {
+
+  .hero-badge::before {
+    content: '';
+    width: 7px; height: 7px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.4); }
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 6vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    animation: fadeDown 0.6s 0.1s ease both;
+  }
+
+  .hero h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    margin-top: 20px;
+    font-size: 1.05rem;
+    color: var(--muted);
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeDown 0.6s 0.2s ease both;
+  }
+
+  /* Device card */
+  .device-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
     background: var(--surface);
     border: 1px solid var(--border);
-    padding: 10px 14px;
-    color: var(--orange);
-    text-align: center;
-    line-height: 1.4;
-  }
-  .flow-node span { display: block; color: var(--dim); font-size: 0.6rem; margin-top: 2px; }
-  .flow-node.hi { border-color: var(--orange); }
-  .flow-arrow { color: var(--dim); padding: 0 6px; font-size: 1rem; }
-
-  /* ── MAIN ── */
-  main {
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 44px 24px 100px;
-    position: relative; z-index: 1;
+    border-radius: 16px;
+    padding: 16px 28px;
+    margin-top: 36px;
+    animation: fadeDown 0.6s 0.3s ease both;
   }
 
-  section {
-    margin-bottom: 68px;
-    opacity: 0;
-    transform: translateY(22px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+  .device-icon {
+    font-size: 2.2rem;
   }
-  section.visible { opacity: 1; transform: translateY(0); }
 
-  h2 {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(0.95rem, 2.2vw, 1.35rem);
+  .device-info { text-align: left; }
+  .device-info .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+  .device-info .name { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+  .device-info .sub { font-size: 0.78rem; color: var(--muted); font-family: 'Space Mono', monospace; }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- RESULT BANNER ---- */
+  .result-banner {
+    background: linear-gradient(135deg, rgba(0,255,157,0.08), rgba(0,229,255,0.05));
+    border: 1px solid rgba(0,255,157,0.3);
+    border-radius: 20px;
+    padding: 36px;
+    margin: 48px 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 24px;
+    animation: fadeUp 0.7s 0.4s ease both;
+  }
+
+  .stat-item { text-align: center; }
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    background: linear-gradient(135deg, var(--green), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---- SECTION ---- */
+  .section {
+    margin: 56px 0;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .step-num {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--green));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
     font-weight: 700;
-    color: var(--orange);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-  }
-  h2 .step-num {
-    font-size: 0.62rem;
-    background: var(--orange);
-    color: var(--bg);
-    padding: 3px 8px;
-    border-radius: 2px;
+    color: #000;
     flex-shrink: 0;
   }
 
-  h3 {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.82rem;
-    color: var(--amber);
-    margin: 26px 0 10px;
-    letter-spacing: 0.08em;
+  .section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
   }
 
-  p { margin-bottom: 14px; font-size: 0.95rem; }
-
-  /* callouts */
-  .callout {
-    border-left: 3px solid var(--orange);
-    background: rgba(255,107,26,0.05);
-    padding: 13px 18px;
-    margin: 16px 0;
-    font-size: 0.88rem;
+  /* ---- PREREQS ---- */
+  .prereq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
   }
-  .callout.warn { border-color: var(--amber); background: rgba(255,170,0,0.05); color: var(--amber); }
-  .callout.dead { border-color: var(--red);   background: rgba(255,34,51,0.05); color: #ff7788; }
-  .callout.ok   { border-color: var(--green);  background: rgba(57,255,20,0.04); color: var(--green); }
 
-  /* code */
-  .code-block {
-    position: relative;
-    background: #060300;
-    border: 1px solid var(--border);
-    border-top: 2px solid var(--orange);
-    border-radius: 2px;
-    margin: 14px 0;
-    overflow: hidden;
-  }
-  .code-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 7px 16px;
+  .prereq-item {
     background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--dim);
-    letter-spacing: 0.12em;
-  }
-  .code-dots { display: flex; gap: 5px; }
-  .code-dots span { width: 8px; height: 8px; border-radius: 50%; }
-  .code-dots span:nth-child(1) { background: #ff5f57; }
-  .code-dots span:nth-child(2) { background: #ffbd2e; }
-  .code-dots span:nth-child(3) { background: #28ca41; }
-
-  pre {
-    padding: 18px;
-    overflow-x: auto;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.8rem;
-    line-height: 1.8;
-    color: #c8a878;
-    tab-size: 4;
-  }
-  pre .kw  { color: var(--orange); }
-  pre .str { color: #a8d878; }
-  pre .cmt { color: var(--dim); font-style: italic; }
-  pre .var { color: var(--amber); }
-  pre .num { color: #c792ea; }
-  pre .func{ color: var(--cyan); }
-  pre .key { color: #e06c75; }
-
-  .copy-btn {
-    position: absolute; top: 38px; right: 10px;
-    background: transparent;
     border: 1px solid var(--border);
-    color: var(--dim);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.62rem; letter-spacing: 0.1em;
-    padding: 4px 9px; cursor: pointer;
-    transition: all 0.2s; z-index: 2;
-  }
-  .copy-btn:hover { border-color: var(--orange); color: var(--orange); }
-  .copy-btn.copied { border-color: var(--green); color: var(--green); }
-
-  /* inline code */
-  code {
-    font-family: 'Share Tech Mono', monospace;
-    background: rgba(255,107,26,0.08);
-    border: 1px solid rgba(255,107,26,0.18);
-    color: var(--orange);
-    padding: 1px 6px;
-    border-radius: 2px;
-    font-size: 0.84em;
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color 0.2s, transform 0.2s;
   }
 
-  /* table */
-  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 16px 0; }
-  th {
-    text-align: left; padding: 9px 14px;
-    background: var(--surface); color: var(--orange);
-    font-family: 'Orbitron', monospace; font-size: 0.62rem;
-    font-weight: 400; letter-spacing: 0.12em;
-    border-bottom: 1px solid var(--border);
-  }
-  td { padding: 9px 14px; border-bottom: 1px solid rgba(58,31,0,0.6); vertical-align: top; }
-  tr:hover td { background: rgba(255,107,26,0.03); }
-  td code { font-size: 0.8em; }
-
-  /* steps */
-  ol.steps { counter-reset: step; list-style: none; padding: 0; }
-  ol.steps li {
-    counter-increment: step;
-    padding: 11px 16px 11px 52px;
-    position: relative;
-    border-left: 1px solid var(--border);
-    margin-bottom: 4px;
-    font-size: 0.93rem;
-  }
-  ol.steps li::before {
-    content: counter(step, decimal-leading-zero);
-    position: absolute; left: 10px;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.68rem; color: var(--orange); opacity: 0.7;
+  .prereq-item:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
   }
 
-  /* filepath */
-  .filepath {
-    display: inline-block;
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.76rem;
-    color: var(--amber);
-    background: rgba(255,170,0,0.06);
-    border: 1px solid rgba(255,170,0,0.18);
-    padding: 2px 10px; margin-bottom: 8px;
-  }
-  .filepath::before { content: '📁 '; }
+  .prereq-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .prereq-name { font-weight: 700; font-size: 0.95rem; }
+  .prereq-desc { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
 
-  /* terminal */
-  .terminal {
-    background: #020100;
-    border: 1px solid #1a1000;
-    border-top: 2px solid var(--green);
-    padding: 16px 18px;
-    font-family: 'Share Tech Mono', monospace;
+  /* ---- STEPS ---- */
+  .steps-list { display: flex; flex-direction: column; gap: 20px; }
+
+  .step-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .step-card:hover { border-color: rgba(0,229,255,0.3); }
+
+  .step-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .step-bubble {
+    width: 32px; height: 32px;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
     font-size: 0.78rem;
-    color: var(--green);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .step-title { font-weight: 700; font-size: 1rem; flex: 1; }
+  .step-chevron { color: var(--muted); font-size: 0.9rem; transition: transform 0.3s; }
+  .step-card.open .step-chevron { transform: rotate(180deg); }
+
+  .step-body {
+    padding: 0 24px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease, padding 0.3s;
+  }
+
+  .step-card.open .step-body {
+    max-height: 600px;
+    padding: 0 24px 24px;
+  }
+
+  .step-desc { color: var(--muted); font-size: 0.9rem; margin-bottom: 16px; }
+
+  /* ---- CODE BLOCKS ---- */
+  .code-block {
+    background: #060b14;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
     margin: 12px 0;
   }
-  .terminal::before {
-    content: '● EXPECTED OUTPUT';
-    display: block; font-size: 0.58rem; color: var(--dim);
-    letter-spacing: 0.2em; margin-bottom: 10px;
-    padding-bottom: 8px; border-bottom: 1px solid #1a1000;
+
+  .code-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
   }
 
-  /* pulse */
-  .pulse {
-    display: inline-block; width: 8px; height: 8px;
-    border-radius: 50%; background: var(--green);
-    margin-right: 8px; animation: pulse 2s infinite; flex-shrink: 0;
-  }
-  @keyframes pulse {
-    0%,100% { box-shadow: 0 0 0 0 rgba(57,255,20,0.6); }
-    50%      { box-shadow: 0 0 0 6px rgba(57,255,20,0); }
+  .code-lang {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
   }
 
-  /* footer */
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.68rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .code-content {
+    padding: 18px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: #a8c7fa;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .code-content .cmd { color: #00e5ff; }
+  .code-content .flag { color: #ff9d4e; }
+  .code-content .path { color: #a8ff78; }
+  .code-content .comment { color: #4a5568; }
+
+  /* ---- OUTPUT BLOCK ---- */
+  .output-block {
+    background: #020609;
+    border: 1px solid rgba(0,255,157,0.2);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-top: 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.9;
+  }
+
+  .output-line { display: flex; gap: 12px; }
+  .output-key { color: var(--muted); min-width: 130px; }
+  .output-val { color: var(--green); }
+  .output-val.health { color: #fff; font-weight: 700; }
+  .output-val.health::after { content: ' ✓'; color: var(--green); }
+
+  /* ---- EXPLAINER TABLE ---- */
+  .explain-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .explain-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface2);
+    color: var(--accent);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .explain-table th:first-child { border-radius: 10px 0 0 0; }
+  .explain-table th:last-child { border-radius: 0 10px 0 0; }
+
+  .explain-table td {
+    padding: 13px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .explain-table tr:last-child td { border-bottom: none; }
+  .explain-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .explain-table td:first-child {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent2);
+  }
+
+  .explain-table td:nth-child(2) {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--green);
+  }
+
+  .explain-table td:nth-child(3) { color: var(--muted); font-size: 0.85rem; }
+
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  /* ---- HEALTH METER ---- */
+  .health-meter {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+    margin: 32px 0;
+  }
+
+  .meter-title { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+
+  .meter-bar-wrap {
+    background: var(--surface2);
+    border-radius: 100px;
+    height: 14px;
+    overflow: hidden;
+    margin: 0 auto 12px;
+    max-width: 500px;
+    position: relative;
+  }
+
+  .meter-bar {
+    height: 100%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--green), var(--accent));
+    width: 0;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px rgba(0,255,157,0.4);
+  }
+
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    max-width: 500px;
+    margin: 0 auto;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .meter-value {
+    font-size: 3.5rem;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    background: linear-gradient(135deg, var(--green), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 16px 0 8px;
+    line-height: 1;
+  }
+
+  .meter-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0,255,157,0.1);
+    border: 1px solid rgba(0,255,157,0.3);
+    border-radius: 100px;
+    padding: 6px 18px;
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  /* ---- TIP BOX ---- */
+  .tip-box {
+    display: flex;
+    gap: 14px;
+    background: rgba(255,107,53,0.07);
+    border: 1px solid rgba(255,107,53,0.25);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+
+  .tip-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .tip-text { font-size: 0.88rem; color: #c4a882; line-height: 1.6; }
+  .tip-text strong { color: var(--accent2); }
+
+  /* ---- INFO BOX ---- */
+  .info-box {
+    display: flex;
+    gap: 14px;
+    background: rgba(0,229,255,0.05);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin: 16px 0;
+  }
+
+  .info-text { font-size: 0.88rem; color: #94b8cc; line-height: 1.6; }
+  .info-text strong { color: var(--accent); }
+
+  /* ---- FOOTER ---- */
   footer {
-    text-align: center; padding: 40px;
     border-top: 1px solid var(--border);
-    font-family: 'Share Tech Mono', monospace;
-    font-size: 0.65rem; color: var(--dim);
-    letter-spacing: 0.15em; position: relative; z-index: 1;
+    padding: 40px 0;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 80px;
   }
-  .blink { animation: blink 1.2s step-end infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer .footer-logo { font-size: 1.4rem; margin-bottom: 12px; }
 
-  @media (max-width: 600px) {
-    pre { font-size: 0.7rem; }
-    .copy-btn { display: none; }
+  /* ---- DIVIDER ---- */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 20px 0;
   }
+
+  /* Scroll animations */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="section-label">REMOTE POWER // MAGIC PACKET PROTOCOL // POTATOSIPS</div>
-  <h1 data-text="REMOTE WAKE-ON-LAN">REMOTE WAKE-ON-LAN</h1>
-  <div class="tagline">▸ VPS · WIREGUARD · OPENWRT · NGINX · DARK MAGIC ◂</div>
-  <div class="hero-humor">
-    Your PC is off. You're at work, on a train, or in another country eating questionable food.
-    You need your home machine running. Right now. This guide turns a URL into a defibrillator
-    for your computer — no port forwarding, no exposed LAN, no praying to the networking gods.
-    Just a magic packet fired over an encrypted tunnel like a responsible adult who still names their router.
-  </div>
-</header>
+<div class="container">
 
-<main>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">🔋 Battery Health Guide · Termux + KernelSU</div>
+    <h1>Check Your <span>Battery Health</span><br>on Xiaomi</h1>
+    <p class="hero-sub">A step-by-step beginner guide to reading real battery data from your rooted Android phone using Termux.</p>
 
-<!-- OVERVIEW -->
-<section id="overview">
-  <div class="section-label">SECTION 00 // MISSION BRIEF</div>
-  <h2><span class="step-num">00</span> What This Does</h2>
-
-  <p>You visit a URL on your VPS. That URL triggers a chain of events that ends with your PC waking
-  up from across the planet. No port forwarding on your home router. No exposing your LAN to the
-  internet. Just encrypted tunnel magic and a 102-byte UDP packet that somehow brings hardware back from the dead.</p>
-
-  <div class="flow-wrap">
-    <div class="flow">
-      <div class="flow-node hi">BROWSER<br><span>your phone / laptop</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">VPS<br><span>public IP</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">NGINX<br><span>web server</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">FCGIWRAP<br><span>CGI runner</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">WAKE.SH<br><span>on VPS</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">SSH/WIREGUARD<br><span>encrypted tunnel</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node">OPENWRT<br><span>router on LAN</span></div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-node hi">PC WAKES<br><span>✓ finally</span></div>
+    <div class="device-card">
+      <div class="device-icon">📱</div>
+      <div class="device-info">
+        <div class="label">Tested on</div>
+        <div class="name">Xiaomi Mi 11X</div>
+        <div class="sub">KernelSU · Kernel 5.10.404R · MIUI/HyperOS</div>
+      </div>
     </div>
   </div>
 
-  <div class="callout">
-    ⬡ This design is intentional. WoL magic packets only work reliably from inside the LAN.
-    OpenWrt fires the packet locally. The VPS just tells it when to pull the trigger.
-  </div>
-</section>
-
-<!-- TESTED VALUES -->
-<section id="values">
-  <div class="section-label">SECTION 01 // EXAMPLE VALUES</div>
-  <h2><span class="step-num">01</span> Tested Example Values</h2>
-
-  <p>Replace these with your own. Do not use these exact values unless you want to wake up
-  a random stranger's PC — which is rude, and also probably impossible, but still rude.</p>
-
-  <table>
-    <thead><tr><th>THING</th><th>EXAMPLE VALUE</th></tr></thead>
-    <tbody>
-      <tr><td>PC MAC address</td><td><code>xx:xx:xx:xx:xx:xx</code></td></tr>
-      <tr><td>VPS public IPv4</td><td><code>xxx.xxx.xxx.xxx</code></td></tr>
-      <tr><td>WireGuard VPS tunnel IP</td><td><code>10.100.0.1/24</code></td></tr>
-      <tr><td>WireGuard OpenWrt tunnel IP</td><td><code>10.100.0.2/24</code></td></tr>
-      <tr><td>WireGuard UDP port</td><td><code>51820</code></td></tr>
-    </tbody>
-  </table>
-</section>
-
-<!-- PREREQUISITES -->
-<section id="prereqs">
-  <div class="section-label">SECTION 02 // REQUIREMENTS</div>
-  <h2><span class="step-num">02</span> Prerequisites</h2>
-
-  <table>
-    <thead><tr><th>COMPONENT</th><th>DETAIL</th></tr></thead>
-    <tbody>
-      <tr><td>VPS</td><td>Ubuntu or Debian — cloud provider of your choice</td></tr>
-      <tr><td>OpenWrt router</td><td>With internet access and SSH enabled</td></tr>
-      <tr><td>IPv6 on OpenWrt WAN</td><td>Required for the tunnel setup</td></tr>
-      <tr><td>PC</td><td>Connected by <strong>Ethernet</strong> — Wi-Fi WoL is a myth and a lie</td></tr>
-      <tr><td>WoL in BIOS/UEFI</td><td>Must be enabled. Every BIOS calls it something different. Good luck.</td></tr>
-      <tr><td>WoL in OS</td><td>Windows: Device Manager → NIC → Power Management. Linux: <code>ethtool</code></td></tr>
-      <tr><td>SSH access</td><td>To both OpenWrt and the VPS</td></tr>
-      <tr><td>sudo on VPS</td><td>Or you'll be crying into your terminal</td></tr>
-    </tbody>
-  </table>
-
-  <div class="callout dead">
-    ☠ Using Wi-Fi? Wake-on-LAN over Wi-Fi is theoretically supported and practically useless.
-    Plug in an Ethernet cable. This is non-negotiable. The spec says yes. Reality says no.
-  </div>
-</section>
-
-<!-- STEP 1 -->
-<section id="step1">
-  <div class="section-label">SECTION 03 // LOCAL TEST</div>
-  <h2><span class="step-num">03</span> Step 1 — Confirm WoL Works Locally First</h2>
-
-  <div class="callout warn">
-    ▲ Do not skip this. If WoL doesn't work from inside your own house, it will definitely
-    not work from a VPS in another continent. Fix it locally first. Then feel smug about it.
+  <!-- RESULT BANNER -->
+  <div class="result-banner reveal">
+    <div class="stat-item">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Battery Health</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">4544</div>
+      <div class="stat-label">mAh (Current Max)</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">28.2°C</div>
+      <div class="stat-label">Temperature</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">257</div>
+      <div class="stat-label">Charge Cycles</div>
+    </div>
   </div>
 
-  <h3>▸ 1.1 Install WoL Tools on OpenWrt</h3>
-  <p>SSH into OpenWrt and run:</p>
+  <!-- STEP 1: PREREQUISITES -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">01</div>
+      <div class="section-title">What You Need Before Starting</div>
+    </div>
+    <div class="prereq-grid">
+      <div class="prereq-item">
+        <div class="prereq-icon">📱</div>
+        <div class="prereq-name">Rooted Phone</div>
+        <div class="prereq-desc">KernelSU or Magisk root access required</div>
+      </div>
+      <div class="prereq-item">
+        <div class="prereq-icon">🖥️</div>
+        <div class="prereq-name">Termux App</div>
+        <div class="prereq-desc">Install from F-Droid (not Play Store)</div>
+      </div>
+      <div class="prereq-item">
+        <div class="prereq-icon">🔑</div>
+        <div class="prereq-name">Root Permission</div>
+        <div class="prereq-desc">Allow Termux superuser access in KernelSU</div>
+      </div>
+      <div class="prereq-item">
+        <div class="prereq-icon">📦</div>
+        <div class="prereq-name">bc package</div>
+        <div class="prereq-desc">Math calculator — installed in this guide</div>
+      </div>
+    </div>
 
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // INSTALL</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>opkg update
-opkg install etherwake luci-app-wol</pre>
+    <div class="tip-box" style="margin-top:20px">
+      <div class="tip-icon">⚠️</div>
+      <div class="tip-text"><strong>Download Termux from F-Droid only.</strong> The Play Store version is outdated and many commands won't work properly in it.</div>
+    </div>
   </div>
 
-  <h3>▸ 1.2 Test Wake from OpenWrt</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // TEST WoL</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>etherwake -i br-lan xx:xx:xx:xx:xx:xx</pre>
+  <!-- STEP 2: INSTALL BC -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">02</div>
+      <div class="section-title">Install the bc Calculator</div>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:16px; font-size:0.9rem;">We need <code style="background:var(--surface2);padding:2px 8px;border-radius:6px;color:var(--accent);font-family:'Space Mono',monospace;">bc</code> to do the health percentage math. Run this in Termux:</p>
+
+    <div class="code-block">
+      <div class="code-toolbar">
+        <span class="code-lang">termux</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <div class="code-content"><span class="cmd">pkg install bc</span></div>
+    </div>
+
+    <div class="info-box">
+      <div style="font-size:1.2rem;flex-shrink:0">💡</div>
+      <div class="info-text">Termux will ask <strong>"Do you want to continue? [Y/n]"</strong> — just press <strong>Y</strong> then Enter. It'll download and install automatically.</div>
+    </div>
   </div>
 
-  <p>Not sure of your LAN interface name? Find it:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ip link</pre>
+  <!-- STEP 3: FIND THE RIGHT PATH -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">03</div>
+      <div class="section-title">Find Your Battery's System Path</div>
+    </div>
+
+    <p style="color:var(--muted); margin-bottom:16px; font-size:0.9rem;">Android exposes battery data as files. First, list what power supply nodes exist on your device:</p>
+
+    <div class="code-block">
+      <div class="code-toolbar">
+        <span class="code-lang">termux · root</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <div class="code-content"><span class="cmd">su -c "ls /sys/class/power_supply/"</span></div>
+    </div>
+
+    <p style="color:var(--muted); margin: 16px 0 10px; font-size:0.88rem;">On the Mi 11X, the output looked like this:</p>
+
+    <div class="output-block">
+      <div style="color:var(--muted); font-size:0.75rem; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.08em;">Output</div>
+      batt_verify &nbsp; <span style="color:var(--accent)">bms</span> &nbsp; main &nbsp; usb<br>
+      <span style="color:var(--accent)">battery</span> &nbsp; bq2597x-standalone &nbsp; pc_port
+    </div>
+
+    <div class="tip-box">
+      <div class="tip-icon">💡</div>
+      <div class="tip-text"><strong>Key finding:</strong> The default <code style="background:rgba(0,0,0,0.3);padding:1px 6px;border-radius:4px;color:var(--accent2)">battery</code> folder gave "Permission denied" errors on this device. The correct path was <code style="background:rgba(0,0,0,0.3);padding:1px 6px;border-radius:4px;color:var(--green)">bms</code> — which stands for Battery Management System.</div>
+    </div>
   </div>
 
-  <div class="callout ok">
-    <span class="pulse"></span> PC woke up? Good. Continue. PC did not wake up? Stop here.
-    Fix your BIOS settings, your NIC power management, or your will to live — in that order.
-  </div>
-</section>
+  <!-- STEP 4: THE FINAL COMMAND -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">04</div>
+      <div class="section-title">Run the Full Battery Health Command</div>
+    </div>
 
-<!-- STEP 2 -->
-<section id="step2">
-  <div class="section-label">SECTION 04 // WIREGUARD INSTALL</div>
-  <h2><span class="step-num">04</span> Step 2 — Install WireGuard</h2>
+    <p style="color:var(--muted); margin-bottom:16px; font-size:0.9rem;">This single command reads all battery metrics and calculates health. Copy and paste the whole thing:</p>
 
-  <h3>▸ 2.1 On the VPS</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // INSTALL WIREGUARD</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo apt update
-sudo apt install wireguard</pre>
-  </div>
+    <div class="code-block">
+      <div class="code-toolbar">
+        <span class="code-lang">termux · root</span>
+        <button class="copy-btn" onclick="copyCode(this)">copy</button>
+      </div>
+      <div class="code-content"><span class="cmd">su</span> -c <span class="flag">"sh -c '</span>
+<span class="comment"># Battery Health Report</span>
+echo <span class="path">\"=== Battery Health Report ===\"</span>
+echo <span class="path">\"Charge Full: \$(cat /sys/class/power_supply/bms/charge_full) µAh\"</span>
+echo <span class="path">\"Design Cap:  \$(cat /sys/class/power_supply/bms/charge_full_design) µAh\"</span>
+echo <span class="path">\"Capacity:    \$(cat /sys/class/power_supply/bms/capacity)%\"</span>
+echo <span class="path">\"Voltage:     \$(cat /sys/class/power_supply/bms/voltage_now) µV\"</span>
+echo <span class="path">\"Temp:        \$(cat /sys/class/power_supply/bms/temp) (div 10 = °C)\"</span>
+echo <span class="path">\"Cycle Count: \$(cat /sys/class/power_supply/bms/cycle_count)\"</span>
+FULL=\$(cat /sys/class/power_supply/bms/charge_full)
+DESIGN=\$(cat /sys/class/power_supply/bms/charge_full_design)
+echo <span class="path">\"Health: \$(echo scale=2\; \$FULL / \$DESIGN \* 100 | bc)%\"</span>
+<span class="flag">'"</span></div>
+    </div>
 
-  <p>If you use UFW:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // UFW</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo ufw allow 51820/udp</pre>
-  </div>
-
-  <h3>▸ 2.2 On OpenWrt</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // INSTALL WIREGUARD</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>opkg update
-opkg install wireguard-tools luci-proto-wireguard kmod-wireguard</pre>
-  </div>
-</section>
-
-<!-- STEP 3 -->
-<section id="step3">
-  <div class="section-label">SECTION 05 // KEY GENERATION</div>
-  <h2><span class="step-num">05</span> Step 3 — Generate WireGuard Keys</h2>
-
-  <h3>▸ 3.1 On OpenWrt</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // KEYGEN</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>wg genkey | tee /etc/wireguard/privatekey | wg pubkey > /etc/wireguard/publickey
-cat /etc/wireguard/publickey</pre>
+    <div class="info-box" style="margin-top:16px">
+      <div style="font-size:1.2rem;flex-shrink:0">🔍</div>
+      <div class="info-text"><strong>Why "sh -c"?</strong> Without wrapping in <code style="background:rgba(0,0,0,0.3);padding:1px 6px;border-radius:4px;color:var(--accent)">sh -c</code>, the <code style="background:rgba(0,0,0,0.3);padding:1px 6px;border-radius:4px;color:var(--accent)">cat</code> commands run as a normal user before root kicks in — causing "Permission denied". Wrapping ensures everything runs as root.</div>
+    </div>
   </div>
 
-  <h3>▸ 3.2 On the VPS</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // KEYGEN</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>wg genkey | tee privatekey | wg pubkey > publickey
-cat publickey</pre>
+  <!-- STEP 5: ACTUAL OUTPUT -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">05</div>
+      <div class="section-title">The Actual Output (Mi 11X)</div>
+    </div>
+
+    <div class="output-block">
+      <div style="color:var(--accent); font-size:0.75rem; margin-bottom:14px; text-transform:uppercase; letter-spacing:0.08em;">=== Battery Health Report ===</div>
+      <div class="output-line"><span class="output-key">Charge Full:</span>   <span class="output-val">4544000 µAh</span></div>
+      <div class="output-line"><span class="output-key">Design Cap:</span>    <span class="output-val">4520000 µAh</span></div>
+      <div class="output-line"><span class="output-key">Capacity:</span>      <span class="output-val">53%</span></div>
+      <div class="output-line"><span class="output-key">Voltage:</span>       <span class="output-val">3846425 µV</span></div>
+      <div class="output-line"><span class="output-key">Temp:</span>          <span class="output-val">282 (div 10 = °C)</span></div>
+      <div class="output-line"><span class="output-key">Cycle Count:</span>   <span class="output-val">257</span></div>
+      <div class="divider"></div>
+      <div class="output-line"><span class="output-key">Health:</span>        <span class="output-val health">100.00%</span></div>
+    </div>
   </div>
 
-  <div class="callout dead">
-    ☠ Never share private keys. Only public keys go into the opposite side's config.
-    If you paste your private key somewhere public, generate new ones immediately and pretend
-    this moment never happened. We won't judge you. Much.
-  </div>
-</section>
+  <!-- STEP 6: UNDERSTANDING THE RESULTS -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">06</div>
+      <div class="section-title">What Every Number Means</div>
+    </div>
 
-<!-- STEP 4 -->
-<section id="step4">
-  <div class="section-label">SECTION 06 // VPS WIREGUARD CONFIG</div>
-  <h2><span class="step-num">06</span> Step 4 — Configure WireGuard on the VPS</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // CREATE CONFIG</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo nano /etc/wireguard/wg0.conf</pre>
-  </div>
-
-  <div class="filepath">/etc/wireguard/wg0.conf</div>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>wg0.conf // INI</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre><span class="key">[Interface]</span>
-<span class="var">PrivateKey</span> = &lt;VPS_PRIVATE_KEY&gt;
-<span class="var">Address</span>    = 10.100.0.1/24
-<span class="var">ListenPort</span> = 51820
-
-<span class="key">[Peer]</span>
-<span class="var">PublicKey</span>  = &lt;OPENWRT_PUBLIC_KEY&gt;
-<span class="var">AllowedIPs</span> = 10.100.0.2/32</pre>
-  </div>
-
-  <p>Get your VPS private key:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>cat privatekey</pre>
-  </div>
-
-  <p>Enable and start WireGuard:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // ENABLE SERVICE</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo systemctl enable wg-quick@wg0
-sudo systemctl start wg-quick@wg0
-sudo wg</pre>
-  </div>
-
-  <p>You should see interface <code>wg0</code> listed. If you don't, the universe is testing you.</p>
-</section>
-
-<!-- STEP 5 -->
-<section id="step5">
-  <div class="section-label">SECTION 07 // OPENWRT WIREGUARD CONFIG</div>
-  <h2><span class="step-num">07</span> Step 5 — Configure WireGuard on OpenWrt</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // UCI CONFIG</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>uci set network.wg0=interface
-uci set network.wg0.proto='wireguard'
-uci set network.wg0.private_key='&lt;OPENWRT_PRIVATE_KEY&gt;'
-uci set network.wg0.listen_port='51820'
-uci add_list network.wg0.addresses='10.100.0.2/24'
-
-uci add network wireguard_wg0
-uci set network.@wireguard_wg0[-1].public_key='&lt;VPS_PUBLIC_KEY&gt;'
-uci set network.@wireguard_wg0[-1].endpoint_host='xxx.xxx.xxx.xxx'
-uci set network.@wireguard_wg0[-1].endpoint_port='51820'
-uci set network.@wireguard_wg0[-1].persistent_keepalive='25'
-uci add_list network.@wireguard_wg0[-1].allowed_ips='10.100.0.1/32'
-
-uci commit network
-/etc/init.d/network restart</pre>
+    <div class="table-wrap">
+      <table class="explain-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>My Value</th>
+            <th>What it means</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>charge_full</td>
+            <td>4544000 µAh</td>
+            <td>Maximum charge your battery holds <em>today</em> = 4544 mAh (divide by 1000)</td>
+          </tr>
+          <tr>
+            <td>charge_full_design</td>
+            <td>4520000 µAh</td>
+            <td>The original factory capacity = 4520 mAh. This is the reference for health %</td>
+          </tr>
+          <tr>
+            <td>capacity</td>
+            <td>53%</td>
+            <td>Current charge level, like a fuel gauge. Was at 53% when command ran</td>
+          </tr>
+          <tr>
+            <td>voltage_now</td>
+            <td>3846425 µV</td>
+            <td>Battery voltage = 3.85V. Normal range: 3.3V (empty) → 4.35V (full)</td>
+          </tr>
+          <tr>
+            <td>temp</td>
+            <td>282</td>
+            <td>Temperature in tenths of °C. So 282 ÷ 10 = <strong>28.2°C</strong>. Safe range: &lt;40°C</td>
+          </tr>
+          <tr>
+            <td>cycle_count</td>
+            <td>257</td>
+            <td>Number of full charge cycles completed. Batteries typically last 400–500 cycles before noticeable wear</td>
+          </tr>
+          <tr>
+            <td>Health %</td>
+            <td>100.00%</td>
+            <td>(charge_full ÷ charge_full_design) × 100. Values &gt;100% are normal for newer batteries</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <p>Get your OpenWrt private key:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>cat /etc/wireguard/privatekey</pre>
-  </div>
-</section>
+  <!-- HEALTH METER -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">07</div>
+      <div class="section-title">Your Battery Health Score</div>
+    </div>
 
-<!-- STEP 6 -->
-<section id="step6">
-  <div class="section-label">SECTION 08 // OPENWRT FIREWALL</div>
-  <h2><span class="step-num">08</span> Step 6 — OpenWrt Firewall Rules</h2>
+    <div class="health-meter">
+      <div class="meter-title">Battery Capacity Retained</div>
+      <div class="meter-value" id="meterVal">0%</div>
+      <div class="meter-bar-wrap">
+        <div class="meter-bar" id="meterBar"></div>
+      </div>
+      <div class="meter-labels"><span>0%</span><span>50%</span><span>100%</span></div>
+      <div style="margin-top:20px">
+        <div class="meter-status">🟢 Excellent — No Degradation Detected</div>
+      </div>
+      <div style="margin-top:16px; color:var(--muted); font-size:0.82rem;">
+        257 charge cycles used · Estimated <strong style="color:var(--text)">143–243 cycles</strong> remaining before significant wear
+      </div>
+    </div>
 
-  <div class="callout warn">
-    ▲ Don't skip the firewall zone. Traffic arriving on <code>wg0</code> will be silently dropped
-    without it. You'll spend an hour wondering why everything looks correct but nothing works.
-    We've been there. It's not fun.
-  </div>
-
-  <h3>▸ 6.1 Allow Incoming WireGuard on WAN</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // FIREWALL</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>uci add firewall rule
-uci set firewall.@rule[-1].name='Allow-WireGuard'
-uci set firewall.@rule[-1].src='wan'
-uci set firewall.@rule[-1].dest_port='51820'
-uci set firewall.@rule[-1].proto='udp'
-uci set firewall.@rule[-1].target='ACCEPT'</pre>
-  </div>
-
-  <h3>▸ 6.2 Create WireGuard Firewall Zone</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // ZONE</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>uci add firewall zone
-uci set firewall.@zone[-1].name='wg'
-uci set firewall.@zone[-1].network='wg0'
-uci set firewall.@zone[-1].input='ACCEPT'
-uci set firewall.@zone[-1].forward='ACCEPT'
-uci set firewall.@zone[-1].output='ACCEPT'</pre>
+    <div class="table-wrap">
+      <table class="explain-table">
+        <thead><tr><th>Health Range</th><th>Status</th><th>What to do</th></tr></thead>
+        <tbody>
+          <tr><td>95–100%+</td><td style="color:var(--green)">Excellent ✓</td><td>Battery is like new. No action needed.</td></tr>
+          <tr><td>85–94%</td><td style="color:#90ee90">Good</td><td>Normal aging. Still performs well daily.</td></tr>
+          <tr><td>70–84%</td><td style="color:#ffd700">Fair</td><td>Noticeable battery drain. Consider usage habits.</td></tr>
+          <tr><td>Below 70%</td><td style="color:var(--accent2)">Poor</td><td>Time to replace the battery.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <h3>▸ 6.3 Allow Forwarding from WireGuard to LAN</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // FORWARDING</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>uci add firewall forwarding
-uci set firewall.@forwarding[-1].src='wg'
-uci set firewall.@forwarding[-1].dest='lan'</pre>
+  <!-- TROUBLESHOOTING -->
+  <div class="section reveal">
+    <div class="section-header">
+      <div class="step-num">08</div>
+      <div class="section-title">Troubleshooting Common Errors</div>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step-card" onclick="toggleStep(this)">
+        <div class="step-header">
+          <div class="step-bubble">!</div>
+          <div class="step-title">Permission denied on /sys/class/power_supply/battery/</div>
+          <div class="step-chevron">▼</div>
+        </div>
+        <div class="step-body">
+          <p class="step-desc">The default <code style="color:var(--accent)">battery</code> folder may be restricted even with root on some kernels. This was the exact issue on the Mi 11X.</p>
+          <p class="step-desc"><strong style="color:var(--text)">Fix:</strong> Use the <code style="color:var(--green)">bms</code> path instead. First list available nodes:</p>
+          <div class="code-block">
+            <div class="code-toolbar"><span class="code-lang">termux</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()">copy</button></div>
+            <div class="code-content"><span class="cmd">su -c "ls /sys/class/power_supply/"</span></div>
+          </div>
+          <p class="step-desc">Then replace <code style="color:var(--accent)">battery</code> with <code style="color:var(--green)">bms</code> in all commands.</p>
+        </div>
+      </div>
+
+      <div class="step-card" onclick="toggleStep(this)">
+        <div class="step-header">
+          <div class="step-bubble">!</div>
+          <div class="step-title">bc: command not found</div>
+          <div class="step-chevron">▼</div>
+        </div>
+        <div class="step-body">
+          <p class="step-desc">The <code style="color:var(--accent)">bc</code> calculator isn't installed by default.</p>
+          <div class="code-block">
+            <div class="code-toolbar"><span class="code-lang">termux</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()">copy</button></div>
+            <div class="code-content"><span class="cmd">pkg install bc</span></div>
+          </div>
+          <p class="step-desc">Or use awk as an alternative without installing anything:</p>
+          <div class="code-block">
+            <div class="code-toolbar"><span class="code-lang">termux</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()">copy</button></div>
+            <div class="code-content"><span class="cmd">awk</span> <span class="flag">'BEGIN {printf "Health: %.2f%%\n", (4544000/4520000)*100}'</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card" onclick="toggleStep(this)">
+        <div class="step-header">
+          <div class="step-bubble">!</div>
+          <div class="step-title">Variables show blank (empty output)</div>
+          <div class="step-chevron">▼</div>
+        </div>
+        <div class="step-body">
+          <p class="step-desc">This happens when you use <code style="color:var(--accent)">su -c "echo $(cat ...)"</code> — the subshell runs as normal user before root. Always wrap with <code style="color:var(--green)">sh -c '...'</code> inside su.</p>
+          <div class="code-block">
+            <div class="code-toolbar"><span class="code-lang">wrong ❌</span></div>
+            <div class="code-content" style="color:#ff6b6b;">su -c "echo $(cat /sys/class/power_supply/bms/temp)"</div>
+          </div>
+          <div class="code-block">
+            <div class="code-toolbar"><span class="code-lang">correct ✓</span></div>
+            <div class="code-content">su -c <span class="flag">"sh -c 'echo \$(cat /sys/class/power_supply/bms/temp)'"</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
-  <h3>▸ 6.4 Apply Changes</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // APPLY</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>uci commit firewall
-/etc/init.d/firewall restart</pre>
-  </div>
-</section>
-
-<!-- STEP 7 -->
-<section id="step7">
-  <div class="section-label">SECTION 09 // TUNNEL TEST</div>
-  <h2><span class="step-num">09</span> Step 7 — Test the WireGuard Tunnel</h2>
-
-  <h3>▸ From the VPS</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // PING</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ping 10.100.0.2</pre>
-  </div>
-
-  <h3>▸ From OpenWrt</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // PING</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ping 10.100.0.1</pre>
-  </div>
-
-  <h3>▸ Check Handshake</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // WG STATUS</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo wg</pre>
-  </div>
-
-  <p>You want to see the OpenWrt peer listed, a recent handshake, and bytes transferred in both directions.</p>
-
-  <div class="callout dead">
-    ☠ Do not continue until both sides can ping each other and the handshake shows up.
-    Proceeding without a working tunnel is like wiring a detonator to a lamp and wondering
-    why the lights don't work.
-  </div>
-</section>
-
-<!-- STEP 8 -->
-<section id="step8">
-  <div class="section-label">SECTION 10 // OPENWRT WAKE SCRIPT</div>
-  <h2><span class="step-num">10</span> Step 8 — Create Wake Script on OpenWrt</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // CREATE SCRIPT</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>nano /root/wake.sh</pre>
-  </div>
-
-  <div class="filepath">/root/wake.sh</div>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>wake.sh // SHELL</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>#!/bin/sh
-etherwake -i br-lan xx:xx:xx:xx:xx:xx</pre>
-  </div>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // CHMOD + TEST</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>chmod +x /root/wake.sh
-/root/wake.sh</pre>
-  </div>
-
-  <div class="callout ok">
-    <span class="pulse"></span> PC woke? Good. This script is the one true source of truth.
-    Everything else is just infrastructure to run it.
-  </div>
-</section>
-
-<!-- STEP 9 -->
-<section id="step9">
-  <div class="section-label">SECTION 11 // SSH KEY AUTH</div>
-  <h2><span class="step-num">11</span> Step 9 — SSH Key Auth from VPS to OpenWrt</h2>
-
-  <p>The web-triggered script runs as <code>www-data</code>. It cannot type a password.
-  We need passwordless SSH from VPS → OpenWrt over the WireGuard tunnel.</p>
-
-  <h3>▸ 9.1 Generate SSH Key on the VPS</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // KEYGEN</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ssh-keygen -t ed25519 -f ~/oracle_emochii</pre>
-  </div>
-
-  <p>This creates <code>~/oracle_emochii</code> (private) and <code>~/oracle_emochii.pub</code> (public).</p>
-
-  <h3>▸ 9.2 Add Public Key to OpenWrt</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // AUTHORIZED KEYS</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>mkdir -p /etc/dropbear
-nano /etc/dropbear/authorized_keys</pre>
-  </div>
-
-  <p>Paste the contents of:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // SHOW PUBKEY</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>cat ~/oracle_emochii.pub</pre>
-  </div>
-
-  <p>Fix permissions:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>OpenWrt SSH // CHMOD</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>chmod 600 /etc/dropbear/authorized_keys</pre>
-  </div>
-
-  <h3>▸ 9.3 Test SSH from VPS</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // TEST SSH</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ssh -i ~/oracle_emochii root@10.100.0.2</pre>
-  </div>
-
-  <h3>▸ 9.4 Test Remote Wake Command</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // REMOTE WAKE TEST</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ssh -i ~/oracle_emochii root@10.100.0.2 "/root/wake.sh"</pre>
-  </div>
-
-  <div class="callout dead">
-    ☠ Still asking for a password? Check the key was pasted correctly, permissions are 600,
-    and you're using the right key pair. Do not continue until this works passwordlessly.
-    The web trigger cannot type passwords. It has no hands.
-  </div>
-</section>
-
-<!-- STEP 10 -->
-<section id="step10">
-  <div class="section-label">SECTION 12 // NGINX + FCGIWRAP</div>
-  <h2><span class="step-num">12</span> Step 10 — Install Nginx and fcgiwrap</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // INSTALL</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo apt install nginx fcgiwrap
-sudo systemctl enable nginx
-sudo systemctl enable fcgiwrap
-sudo systemctl start nginx
-sudo systemctl start fcgiwrap</pre>
-  </div>
-
-  <p>Allow HTTP through UFW:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // UFW</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo ufw allow 80/tcp</pre>
-  </div>
-</section>
-
-<!-- STEP 11 -->
-<section id="step11">
-  <div class="section-label">SECTION 13 // VPS WAKE SCRIPT</div>
-  <h2><span class="step-num">13</span> Step 11 — Create Wake Script on the VPS</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // MKDIR + CREATE</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo mkdir -p /usr/local/lib/wake
-sudo nano /usr/local/lib/wake/wake.sh</pre>
-  </div>
-
-  <div class="filepath">/usr/local/lib/wake/wake.sh</div>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>wake.sh // BASH CGI SCRIPT</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>#!/bin/bash
-echo "Content-Type: text/plain"
-echo ""
-
-/usr/bin/ssh \
-  -i /usr/local/lib/wake/oracle_emochii \
-  -o BatchMode=yes \
-  -o StrictHostKeyChecking=no \
-  -o UserKnownHostsFile=/dev/null \
-  root@10.100.0.2 "/root/wake.sh"
-
-rc=$?
-echo "ssh exit code: $rc"
-
-if [ "$rc" -eq 0 ]; then
-  echo "wake sent"
-else
-  echo "wake failed"
-fi</pre>
-  </div>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // PERMISSIONS</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo chown root:root /usr/local/lib/wake/wake.sh
-sudo chmod 755 /usr/local/lib/wake/wake.sh</pre>
-  </div>
-</section>
-
-<!-- STEP 12 -->
-<section id="step12">
-  <div class="section-label">SECTION 14 // SSH KEY FOR WEB</div>
-  <h2><span class="step-num">14</span> Step 12 — Make SSH Key Available to the Web Script</h2>
-
-  <p>The script runs as <code>www-data</code>. It can't read your home directory's private key.
-  Copy it somewhere accessible — but not world-readable, because we're not animals.</p>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // COPY KEY</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo cp ~/oracle_emochii /usr/local/lib/wake/oracle_emochii
-sudo chown root:www-data /usr/local/lib/wake/oracle_emochii
-sudo chmod 640 /usr/local/lib/wake/oracle_emochii
-sudo chmod 755 /usr/local/lib/wake</pre>
-  </div>
-</section>
-
-<!-- STEP 13 -->
-<section id="step13">
-  <div class="section-label">SECTION 15 // NGINX CONFIG</div>
-  <h2><span class="step-num">15</span> Step 13 — Configure Nginx</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // EDIT NGINX SITE</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo nano /etc/nginx/sites-available/default</pre>
-  </div>
-
-  <div class="filepath">/etc/nginx/sites-available/default</div>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>nginx.conf // NGINX</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre><span class="kw">server</span> {
-    listen 80 default_server;
-    listen [::]:80 default_server;
-
-    root /var/www/html;
-    index index.html index.htm index.nginx-debian.html;
-
-    server_name _;
-
-    <span class="kw">location</span> / {
-        try_files $uri $uri/ =404;
-    }
-
-    <span class="cmt"># Use a long random path — don't just use /wake</span>
-    <span class="kw">location</span> /wake-9f3a7c1b2e {
-        include fastcgi_params;
-        fastcgi_pass unix:/run/fcgiwrap.socket;
-        fastcgi_param SCRIPT_FILENAME /usr/local/lib/wake/wake.sh;
-    }
-}</pre>
-  </div>
-
-  <div class="callout warn">
-    ▲ The <code>location /wake-...</code> block must be <strong>inside</strong> the <code>server {}</code> block.
-    Putting it outside the closing <code>}</code> is the #1 mistake that breaks Nginx.
-    Nginx's error message will be cryptic. Your frustration will not be.
-  </div>
-
-  <p>Your final wake URL will be:</p>
-  <div class="terminal">http://xxx.xxx.xxx.xxx/wake-9f3a7c1b2e</div>
-</section>
-
-<!-- STEP 14 -->
-<section id="step14">
-  <div class="section-label">SECTION 16 // NGINX RELOAD</div>
-  <h2><span class="step-num">16</span> Step 14 — Validate and Reload Nginx</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // VALIDATE + RELOAD</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo nginx -t
-sudo systemctl restart nginx</pre>
-  </div>
-
-  <div class="terminal">nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
-nginx: configuration file /etc/nginx/nginx.conf test is successful</div>
-</section>
-
-<!-- STEP 15 -->
-<section id="step15">
-  <div class="section-label">SECTION 17 // FULL CHAIN TEST</div>
-  <h2><span class="step-num">17</span> Step 15 — Test the Whole Chain</h2>
-
-  <h3>▸ 15.1 Test Script as www-data First</h3>
-  <p>This is the most important debugging step. If this works, the web trigger will work.</p>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // TEST AS WWW-DATA</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo -u www-data /usr/bin/ssh \
-  -i /usr/local/lib/wake/oracle_emochii \
-  -o BatchMode=yes \
-  -o StrictHostKeyChecking=no \
-  -o UserKnownHostsFile=/dev/null \
-  root@10.100.0.2 "/root/wake.sh"</pre>
-  </div>
-
-  <h3>▸ 15.2 Test the Local Web Endpoint</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // CURL TEST</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>curl -i http://127.0.0.1/wake-9f3a7c1b2e</pre>
-  </div>
-
-  <div class="terminal">ssh exit code: 0
-wake sent</div>
-
-  <h3>▸ 15.3 Test from Browser or Phone</h3>
-  <div class="terminal">http://xxx.xxx.xxx.xxx/wake-9f3a7c1b2e</div>
-
-  <div class="callout ok">
-    <span class="pulse"></span>
-    PC woke up from a URL on your phone? You're done. You are now the kind of person who
-    can wake their home computer from an airport lounge at 2 AM. Use this power wisely.
-  </div>
-</section>
-
-<!-- STEP 16 -->
-<section id="step16">
-  <div class="section-label">SECTION 18 // SERVICE CHECK</div>
-  <h2><span class="step-num">18</span> Step 16 — Service Checks</h2>
-
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // STATUS CHECK</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo systemctl is-active nginx
-sudo systemctl is-active fcgiwrap
-sudo systemctl is-active wg-quick@wg0</pre>
-  </div>
-
-  <div class="terminal">active
-active
-active</div>
-
-  <p>Three times <code>active</code>. Anything else means something is broken and you have a date with <code>journalctl</code>.</p>
-</section>
-
-<!-- TROUBLESHOOTING -->
-<section id="troubleshoot">
-  <div class="section-label">SECTION 19 // WHEN IT ALL GOES WRONG</div>
-  <h2><span class="step-num">19</span> Troubleshooting</h2>
-
-  <h3>▸ Nginx Fails to Restart</h3>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // DIAGNOSE NGINX</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo nginx -t
-sudo systemctl status nginx
-sudo journalctl -xeu nginx.service</pre>
-  </div>
-  <p>Usual culprit: the <code>location</code> block is outside the <code>server {}</code> block. Classic.</p>
-
-  <h3>▸ Browser Shows 403 Forbidden</h3>
-  <p>Possible causes: wrong script path, <code>fcgiwrap</code> can't execute the script, or the key isn't readable by <code>www-data</code>.</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // DIAGNOSE 403</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>ls -ld /usr/local /usr/local/lib /usr/local/lib/wake
-ls -l /usr/local/lib/wake
-sudo tail -n 50 /var/log/nginx/error.log
-sudo journalctl -u fcgiwrap --no-pager -n 50</pre>
-  </div>
-
-  <h3>▸ Page Says "wake sent" but PC Doesn't Wake</h3>
-  <p>The script in this guide prints the actual SSH exit code. If it says <code>ssh exit code: 0</code> but
-  the PC doesn't wake, the problem is WoL itself — BIOS settings, NIC config, or a switch that
-  drops magic packets. Test directly:</p>
-  <div class="code-block">
-    <div class="code-header"><div class="code-dots"><span></span><span></span><span></span></div><span>VPS Bash // DIRECT TEST</span></div>
-    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
-    <pre>sudo -u www-data /usr/bin/ssh \
-  -i /usr/local/lib/wake/oracle_emochii \
-  -o BatchMode=yes \
-  -o StrictHostKeyChecking=no \
-  -o UserKnownHostsFile=/dev/null \
-  root@10.100.0.2 "/root/wake.sh"</pre>
-  </div>
-
-  <div class="callout dead">
-    ☠ If the SSH succeeds but the PC still won't wake, that's a hardware problem.
-    Go into BIOS and re-enable Wake-on-LAN. Then do it again after the next BIOS update
-    resets it. This is just how it is. We're sorry.
-  </div>
-</section>
-
-<!-- RESULT -->
-<section id="result">
-  <div class="section-label">SECTION 20 // FINAL RESULT</div>
-  <h2><span class="step-num">20</span> What You Now Have</h2>
-
-  <table>
-    <thead><tr><th>CAPABILITY</th><th>STATUS</th></tr></thead>
-    <tbody>
-      <tr><td>Wake PC from anywhere on Earth</td><td style="color:var(--green);">✓ OPERATIONAL</td></tr>
-      <tr><td>No home port forwarding</td><td style="color:var(--green);">✓ CLEAN</td></tr>
-      <tr><td>WireGuard-encrypted communication</td><td style="color:var(--green);">✓ SECURED</td></tr>
-      <tr><td>WoL packet sent from inside LAN</td><td style="color:var(--green);">✓ RELIABLE</td></tr>
-      <tr><td>One-click trigger from browser/phone</td><td style="color:var(--green);">✓ DEPLOYED</td></tr>
-      <tr><td>Your home network exposed to internet</td><td style="color:var(--red);">✗ NONE</td></tr>
-    </tbody>
-  </table>
-
-  <div class="callout" style="margin-top:20px;">
-    ⬡ Your PC is now just a URL away from consciousness. Treat it with respect.
-    It didn't ask to be woken up at 3 AM either.
-  </div>
-</section>
-
-</main>
-
-<footer>
-  <div>POTATOSIPS // REMOTE WAKE-ON-LAN // VPS + WIREGUARD + OPENWRT + NGINX</div>
-  <div style="margin-top:8px; color: var(--green);">
-    <span class="blink">■</span> TUNNEL ACTIVE // MAGIC PACKET READY // PC AWAITING RESURRECTION
-  </div>
-  <div style="margin-top:12px; color: var(--dim); font-size:0.6rem;">
-    A 102-byte UDP packet. That's all it takes to wake a machine from the dead. Networking is wild.
-  </div>
-</footer>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">🔋</div>
+    <div>Guide written for <strong>Xiaomi Mi 11X</strong> · KernelSU · Kernel 5.10.404R</div>
+    <div style="margin-top:6px">Tested via Termux on MIUI/HyperOS · All values from <code style="color:var(--accent)">/sys/class/power_supply/bms/</code></div>
+    <div style="margin-top:16px; font-size:0.75rem; opacity:0.5">Battery health is best checked when the phone is at room temperature and not charging.</div>
+  </footer>
+
+</div>
 
 <script>
-  function copyCode(btn) {
-    const pre = btn.parentElement.querySelector('pre');
-    const text = pre.innerText || pre.textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      btn.textContent = '✓ COPIED';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
-    }).catch(() => {
-      btn.textContent = 'FAILED';
-      setTimeout(() => { btn.textContent = 'COPY'; }, 2000);
+  // Animate meter on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const bar = document.getElementById('meterBar');
+      const val = document.getElementById('meterVal');
+      if (bar) bar.style.width = '100%';
+      let count = 0;
+      const timer = setInterval(() => {
+        count++;
+        if (val) val.textContent = count + '%';
+        if (count >= 100) clearInterval(timer);
+      }, 15);
+    }, 600);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
     });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Accordion
+  function toggleStep(card) {
+    card.classList.toggle('open');
   }
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-  }, { threshold: 0.07 });
-
-  document.querySelectorAll('section').forEach(s => observer.observe(s));
+  // Copy buttons
+  function copyCode(btn) {
+    const block = btn.closest('.code-block');
+    const content = block.querySelector('.code-content').innerText;
+    navigator.clipboard.writeText(content.trim()).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
 </script>
 </body>
 </html>
