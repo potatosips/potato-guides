@@ -1,6 +1,21 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.pathname === "/__debug") {
+      return new Response(
+        JSON.stringify({
+          host: url.hostname,
+          pathname: url.pathname
+        }, null, 2),
+        {
+          headers: {
+            "content-type": "application/json"
+          }
+        }
+      );
+    }
+
     const host = url.hostname.toLowerCase();
 
     const routes = {
@@ -11,7 +26,7 @@ export default {
     const folder = routes[host];
 
     if (!folder) {
-      return new Response("Site not found", { status: 404 });
+      return new Response("Site not found for host: " + host, { status: 404 });
     }
 
     const requestedPath = url.pathname === "/" ? "/index.html" : url.pathname;
