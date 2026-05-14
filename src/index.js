@@ -3,10 +3,30 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/__debug") {
+      const testPaths = [
+        "/battery-health-check-Mi11x/index.html",
+        "/Remote-wol-guide/index.html"
+      ];
+
+      const results = {};
+
+      for (const path of testPaths) {
+        const testUrl = new URL(request.url);
+        testUrl.pathname = path;
+
+        const res = await env.ASSETS.fetch(new Request(testUrl.toString(), request));
+
+        results[path] = {
+          status: res.status,
+          statusText: res.statusText
+        };
+      }
+
       return new Response(
         JSON.stringify({
           host: url.hostname,
-          pathname: url.pathname
+          pathname: url.pathname,
+          assetTests: results
         }, null, 2),
         {
           headers: {
