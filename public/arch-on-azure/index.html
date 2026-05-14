@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCH → AZURE // PotatoSips Starport</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #020b14;
+    --bg2: #040f1c;
+    --panel: #071828;
+    --border: #0a3a5c;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --text: #b8d4e8;
+    --text-dim: #4a7a9b;
+    --code-bg: #010810;
+    --warning: #ffcc00;
+    --glow: 0 0 20px rgba(0,212,255,0.3);
+    --glow2: 0 0 20px rgba(255,107,53,0.3);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  ::selection { background: rgba(0,212,255,0.3); color: #fff; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+  body {
+    font-family: 'Exo 2', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated starfield */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 10%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 90%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 35%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 55%, rgba(0,212,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 80%, rgba(0,212,255,0.2) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+    animation: drift 120s linear infinite;
+  }
+
+  @keyframes drift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-20px); }
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ═══════════════════ HEADER ═══════════════════ */
+  header {
+    padding: 60px 0 40px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100px; right: -100px; bottom: 0;
+    background: radial-gradient(ellipse at 50% -20%, rgba(0,212,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .header-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeSlideIn 0.6s ease forwards;
+  }
+
+  .header-tag::before {
+    content: '';
+    display: block;
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .blink {
+    animation: blink 1.2s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    color: #fff;
+    text-shadow: 0 0 40px rgba(0,212,255,0.4);
+    animation: fadeSlideIn 0.6s 0.1s ease both;
+  }
+
+  h1 span { color: var(--accent); }
+  h1 .orange { color: var(--accent2); }
+
+  .header-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 12px;
+    animation: fadeSlideIn 0.6s 0.2s ease both;
+  }
+
+  .header-sub em { color: var(--accent3); font-style: normal; }
+
+  .prereqs {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    animation: fadeSlideIn 0.6s 0.3s ease both;
+  }
+
+  .prereq-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+    background: rgba(0,212,255,0.04);
+    letter-spacing: 1px;
+  }
+
+  .prereq-tag.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 10px rgba(0,212,255,0.15);
+  }
+
+  /* ═══════════════════ NAV ═══════════════════ */
+  nav {
+    position: sticky;
+    top: 0;
+    background: rgba(2,11,20,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    padding: 0;
+  }
+
+  nav .container {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  nav a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 14px 18px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  nav a:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ═══════════════════ SECTIONS ═══════════════════ */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid rgba(10,58,92,0.5);
+    animation: fadeSlideIn 0.5s ease both;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .section-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: 3px;
+    background: rgba(255,107,53,0.08);
+    border: 1px solid rgba(255,107,53,0.3);
+    padding: 4px 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+  }
+
+  h3 {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin: 28px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h3::before {
+    content: '▸';
+    color: var(--accent2);
+    font-size: 12px;
+  }
+
+  p {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .note {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--warning);
+    background: rgba(255,204,0,0.06);
+    border-left: 3px solid var(--warning);
+    padding: 10px 16px;
+    margin: 16px 0;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .note::before { content: '⚠ '; }
+
+  /* ═══════════════════ CODE BLOCKS ═══════════════════ */
+  .cmd-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 14px 0;
+    overflow: hidden;
+    position: relative;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .cmd-block:hover {
+    border-color: rgba(0,212,255,0.4);
+    box-shadow: var(--glow);
+  }
+
+  .cmd-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    background: rgba(0,212,255,0.05);
+    border-bottom: 1px solid var(--border);
+    padding: 6px 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .copy-btn.copied {
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+
+  pre {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #e0f0ff;
+    padding: 16px 18px;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  pre .prompt { color: var(--accent3); user-select: none; }
+  pre .comment { color: var(--text-dim); }
+  pre .flag { color: var(--accent2); }
+  pre .path { color: var(--warning); }
+  pre .string { color: #98e4a0; }
+
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    padding: 2px 6px;
+    border-radius: 2px;
+    border: 1px solid rgba(0,212,255,0.15);
+  }
+
+  /* ═══════════════════ STEPS ═══════════════════ */
+  .step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .step-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--bg);
+    background: var(--accent);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+    box-shadow: 0 0 12px rgba(0,212,255,0.4);
+  }
+
+  .step-body { flex: 1; }
+
+  .step-title {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  /* ═══════════════════ PARTITION TABLE ═══════════════════ */
+  .partition-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    margin: 16px 0;
+    border: 1px solid var(--border);
+  }
+
+  .partition-table th {
+    background: rgba(0,212,255,0.08);
+    color: var(--accent);
+    padding: 10px 16px;
+    text-align: left;
+    letter-spacing: 2px;
+    font-size: 11px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .partition-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid rgba(10,58,92,0.5);
+    color: var(--text);
+  }
+
+  .partition-table tr:last-child td { border-bottom: none; }
+  .partition-table tr:hover td { background: rgba(0,212,255,0.03); }
+
+  /* ═══════════════════ ALERT PANEL ═══════════════════ */
+  .alert-panel {
+    background: rgba(255,107,53,0.05);
+    border: 1px solid rgba(255,107,53,0.3);
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .alert-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent2);
+    box-shadow: 0 0 10px var(--accent2);
+  }
+
+  .alert-panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .alert-panel p { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+  /* ═══════════════════ LINK ═══════════════════ */
+  a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,212,255,0.3);
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  a:hover {
+    color: #fff;
+    border-bottom-color: #fff;
+  }
+
+  /* ═══════════════════ FOOTER ═══════════════════ */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 2;
+  }
+
+  footer::before {
+    content: '// ';
+    color: var(--accent2);
+  }
+
+  /* ═══════════════════ ANIMATIONS ═══════════════════ */
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .grid-line {
+    position: fixed;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.03;
+  }
+
+  /* Corner decoration */
+  .corner-deco {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    opacity: 0.4;
+  }
+  .corner-deco.tr { top: 20px; right: 0; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+  .corner-deco.bl { bottom: 0; left: 0; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+
+  /* Vertical connector line between steps */
+  .steps-list { position: relative; }
+  .steps-list::before {
+    content: '';
+    position: absolute;
+    left: 13px;
+    top: 28px;
+    bottom: 28px;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), var(--border));
+    opacity: 0.3;
+  }
+
+  /* HUD indicator */
+  .hud-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+  }
+
+  .hud-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-dim);
+  }
+
+  .hud-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 6px var(--accent3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  .hud-dot.orange { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+  .hud-dot.blue { background: var(--accent); box-shadow: 0 0 6px var(--accent); animation-delay: 0.5s; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container" style="position:relative;">
+    <div class="corner-deco tr"></div>
+    <div class="corner-deco bl"></div>
+    <div class="header-tag">
+      POTATOSIPS STARPORT <span class="blink">█</span>
+    </div>
+    <h1><span>ARCH</span> → <span class="orange">AZURE</span></h1>
+    <div class="header-sub">
+      VIRTUAL MACHINE DEPLOYMENT PROTOCOL // BIOS MODE // <em>ORACLE VIRTUALBOX</em>
+    </div>
+    <div class="prereqs">
+      <div class="prereq-tag active">Oracle VirtualBox</div>
+      <div class="prereq-tag active">30GB Fixed VHD</div>
+      <div class="prereq-tag active">Bridge Networking</div>
+      <div class="prereq-tag">BIOS Mode</div>
+      <div class="prereq-tag">Azure CLI</div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="container">
+    <a href="#vbox">VirtualBox Setup</a>
+    <a href="#install">Installation</a>
+    <a href="#azure-prep">Azure Prep</a>
+    <a href="#waagent">WA Agent</a>
+    <a href="#upload">Upload</a>
+  </div>
+</nav>
+
+<main class="container">
+
+  <!-- ═══ SECTION 0: VIRTUALBOX SETUP ═══ -->
+  <section id="vbox">
+    <div class="section-header">
+      <div class="section-num">SYS-00</div>
+      <h2>VirtualBox Setup</h2>
+    </div>
+
+    <div class="hud-row">
+      <div class="hud-item"><div class="hud-dot blue"></div> Oracle VirtualBox</div>
+      <div class="hud-item"><div class="hud-dot orange"></div> BIOS Mode — NOT EFI</div>
+      <div class="hud-item"><div class="hud-dot"></div> 30GB Fixed VHD</div>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Download VirtualBox. It's free. It's cursed. It's yours.</div>
+          <p>→ <a href="https://www.virtualbox.org/wiki/Downloads" target="_blank">virtualbox.org — Downloads</a></p>
+          <p>→ <a href="https://archlinux.org/download/" target="_blank">archlinux.org — Download the ISO</a></p>
+          <div class="note">Download the latest Arch Linux ISO. It is a rolling release, which means it is always up to date and also always slightly different from the last time you used it.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Create a new VM. Name it something professional. Or don't.</div>
+          <p>Open VirtualBox → <strong>New</strong> → set the following:</p>
+          <table class="partition-table">
+            <thead>
+              <tr><th>Setting</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Name</td><td>AzureVmTemplate (or whatever haunts you)</td></tr>
+              <tr><td>Type</td><td>Linux</td></tr>
+              <tr><td>Version</td><td>Arch Linux (64-bit)</td></tr>
+              <tr><td>RAM</td><td>2048 MB minimum</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Create a 30GB fixed-size VHD disk. Fixed, not dynamic. Azure is picky.</div>
+          <p>When prompted for storage: choose <strong>Create a virtual hard disk now</strong> → <strong>VHD (Virtual Hard Disk)</strong> → <strong>Fixed size</strong> → <strong>30 GB</strong>.</p>
+          <div class="note">Use VHD format, not VDI or VMDK. Azure only accepts VHD. Ask Azure why. It won't answer.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">⚠ Disable EFI. This is not optional. This is survival.</div>
+          <p>Go to <strong>Settings → System → Motherboard</strong>.</p>
+          <p>Make sure <strong>"Enable EFI (special OSes only)"</strong> is <strong>unchecked</strong>. GRUB will be installed in BIOS/MBR mode. EFI will cause everything to collapse quietly and without mercy.</p>
+          <div class="alert-panel" style="margin-top: 12px;">
+            <div class="alert-panel-title">🚫 EFI = DEATH</div>
+            <p>If EFI is enabled, the GRUB install will appear to succeed, the VM will appear to boot, and then nothing will work in Azure. You will spend hours debugging something that a single unchecked checkbox caused. Uncheck it now. Sleep well later.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Enable bridge networking for SSH access.</div>
+          <p>Go to <strong>Settings → Network → Adapter 1</strong> → set <strong>Attached to: Bridged Adapter</strong> → select your active network interface.</p>
+          <div class="note">Bridged mode puts the VM on your actual network. You'll be able to SSH in from your host. NAT also works but you'll need port forwarding and the energy to set it up.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">Mount the Arch ISO and boot.</div>
+          <p>Go to <strong>Settings → Storage → Controller: IDE</strong> → click the empty optical drive → <strong>Choose a disk file</strong> → select the Arch ISO.</p>
+          <p>Start the VM. You will be dropped into a root shell. You are now on the launchpad.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 1: INSTALLATION ═══ -->
+  <section id="install">
+    <div class="section-header">
+      <div class="section-num">SYS-01</div>
+      <h2>Arch Linux Installation</h2>
+    </div>
+
+    <div class="hud-row">
+      <div class="hud-item"><div class="hud-dot"></div> Boot from ISO</div>
+      <div class="hud-item"><div class="hud-dot blue"></div> BIOS Mode Active</div>
+      <div class="hud-item"><div class="hud-dot orange"></div> Target: /dev/sda</div>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Sync the clock. The universe won't wait.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">CHRONO-SYNC <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>timedatectl set-ntp true</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Partition the disk. Choose carefully — there's no undo in the void.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">DISK SURGERY <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>cfdisk /dev/sda</pre>
+          </div>
+          <table class="partition-table">
+            <thead>
+              <tr><th>Partition</th><th>Size</th><th>Type</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>/dev/sda1</td><td>10 MB</td><td>BIOS boot</td><td>GRUB anchor point</td></tr>
+              <tr><td>/dev/sda2</td><td>Remaining</td><td>Linux filesystem</td><td>Everything else. Your whole life.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Format and mount. It's not destruction, it's reallocation of entropy.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">FORMAT + MOUNT <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>mkfs.ext4 /dev/sda2
+<span class="prompt">$ </span>mount /dev/sda2 /mnt</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Install the base system. This is the moment of no return.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">PACSTRAP SEQUENCE <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>pacstrap /mnt base linux linux-firmware grub nano git \
+    btop curl wget openssh dhcpcd sudo dnsutils \
+    base-devel htop</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Generate fstab. Let the machine know where it lives.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">FSTAB GENERATION <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>genfstab -U /mnt >> /mnt/etc/fstab</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">Chroot in. You are now inside the machine. Breathe.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">CHROOT <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>arch-chroot /mnt</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-title">Set timezone and hardware clock. Dhaka Standard Time. Respectable.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">TIMEZONE + CLOCK <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>ln -sf /usr/share/zoneinfo/Asia/Dhaka /etc/localtime
+<span class="prompt">$ </span>hwclock --systohc</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-title">Configure locale. Because the system needs to know which language to fail in.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">LOCALE CONFIG <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/locale.gen  <span class="comment"># Uncomment: en_US.UTF-8 UTF-8</span>
+<span class="prompt">$ </span>locale-gen
+<span class="prompt">$ </span>echo "LANG=en_US.UTF-8" > /etc/locale.conf
+<span class="prompt">$ </span>echo "KEYMAP=us" > /etc/vconsole.conf</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <div class="step-title">Install GRUB. The bootloader that has outlived careers.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">BOOTLOADER INSTALL <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>grub-install --target=i386-pc /dev/sda
+<span class="prompt">$ </span>nano /etc/default/grub  <span class="comment"># Edit if needed</span>
+<span class="prompt">$ </span>grub-mkconfig -o /boot/grub/grub.cfg</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <div class="step-title">Set root password. Make it something you'll forget at 3 AM.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">ROOT ACCESS <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>passwd</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">11</div>
+        <div class="step-body">
+          <div class="step-title">Create a user. Name it whatever. It won't judge you.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">USER CREATION <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>useradd -m -G wheel -s /bin/bash potato
+<span class="prompt">$ </span>passwd potato</pre>
+          </div>
+          <div class="note">Replace <code>potato</code> with your preferred username. Or don't. Potato is a perfectly valid identity.</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">12</div>
+        <div class="step-body">
+          <div class="step-title">Edit sudoers. Grant the wheel. Accept the power. Fear it.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">SUDOERS <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/sudoers
+<span class="comment"># Uncomment both wheel lines:</span>
+<span class="comment"># %wheel ALL=(ALL:ALL) ALL</span>
+<span class="comment"># %wheel ALL=(ALL:ALL) NOPASSWD: ALL</span></pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">13</div>
+        <div class="step-body">
+          <div class="step-title">Configure SSH and enable services.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">SSH + SERVICES <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/ssh/sshd_config  <span class="comment"># Set PermitRootLogin yes</span>
+<span class="prompt">$ </span>systemctl enable dhcpcd
+<span class="prompt">$ </span>systemctl enable sshd</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">14</div>
+        <div class="step-body">
+          <div class="step-title">Set up /etc/hosts. Introduce the machine to itself.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">/ETC/HOSTS <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/hosts
+<span class="comment"># Add:</span>
+127.0.0.1    localhost
+::1          localhost
+127.0.1.1    AzureVmTemplate AzureVmTemplate.localdomain</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">15</div>
+        <div class="step-body">
+          <div class="step-title">Exit chroot, unmount, power off. The first phase is complete.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">POWER DOWN <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>exit
+<span class="prompt">$ </span>umount -a
+<span class="prompt">$ </span>poweroff</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 2: AZURE PREP ═══ -->
+  <section id="azure-prep">
+    <div class="section-header">
+      <div class="section-num">SYS-02</div>
+      <h2>Prepare for Azure</h2>
+    </div>
+
+    <div class="alert-panel">
+      <div class="alert-panel-title">⚡ BOOT FIRST</div>
+      <p>Boot the VM after the initial installation before proceeding. The following steps run inside the live system, not the installer.</p>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Add Hyper-V kernel modules. Azure runs on Hyper-V. Resistance is futile.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">MKINITCPIO <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/mkinitcpio.conf
+<span class="comment"># Change:</span>
+MODULES=(hv_storvsc hv_vmbus)</pre>
+          </div>
+          <div class="cmd-block">
+            <div class="cmd-label">REBUILD INITRAMFS <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>mkinitcpio -p linux</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: WAAGENT ═══ -->
+  <section id="waagent">
+    <div class="section-header">
+      <div class="section-num">SYS-03</div>
+      <h2>WA Linux Agent</h2>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Switch user and clone walinuxagent from AUR. Because of course it's from AUR.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">AUR CLONE <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>su potato
+<span class="prompt">$ </span>cd && mkdir aur && cd aur
+<span class="prompt">$ </span>git clone https://aur.archlinux.org/walinuxagent.git
+<span class="prompt">$ </span>cd walinuxagent && makepkg -si</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Enable waagent. Let Azure's watchdog keep its eye on you.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">ENABLE WAAGENT <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>systemctl enable waagent</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Configure waagent swap. Give Azure its resource disk back.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">WAAGENT CONFIG <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>nano /etc/waagent.conf
+<span class="comment"># Set:</span>
+ResourceDisk.EnableSwap=y
+ResourceDisk.SwapSizeMB=8192</pre>
+          </div>
+          <div class="cmd-block">
+            <div class="cmd-label">RESOURCE MOUNT <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>mkdir /mnt/resource</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Clean up. Leave no trace. You were never here.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">CLEANUP <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>rm -Rf ~/.bash_history ~/aur</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Deprovision. This is the last thing the VM remembers.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">DEPROVISION + SHUTDOWN <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>waagent -force -deprovision
+<span class="prompt">$ </span>export HISTSIZE=0
+<span class="prompt">$ </span>shutdown -h now</pre>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 4: UPLOAD ═══ -->
+  <section id="upload">
+    <div class="section-header">
+      <div class="section-num">SYS-04</div>
+      <h2>Upload to Azure</h2>
+    </div>
+
+    <div class="steps-list">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Install Azure CLI. Follow the official docs — they change it every few months just to keep you humble.</div>
+          <p>→ <a href="https://learn.microsoft.com/en-us/cli/azure/install-azure-cli" target="_blank">learn.microsoft.com — Install Azure CLI</a></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Login. Let Microsoft know you've accepted defeat.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">AZ LOGIN <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>az login</pre>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Upload the VHD. The final act. The thing all of this was for.</div>
+          <div class="cmd-block">
+            <div class="cmd-label">BLOB UPLOAD <button class="copy-btn" onclick="copyCmd(this)">COPY</button></div>
+            <pre><span class="prompt">$ </span>az storage blob upload \
+    <span class="flag">--account-name</span> <span class="string">&lt;storage-account-name&gt;</span> \
+    <span class="flag">--account-key</span>  <span class="string">&lt;access-key&gt;</span> \
+    <span class="flag">--container-name</span> <span class="string">&lt;container-name&gt;</span> \
+    <span class="flag">--name</span> arch.vhd \
+    <span class="flag">--file</span> <span class="path">&lt;path/to/your.vhd&gt;</span></pre>
+          </div>
+          <div class="note">Replace all <code>&lt;bracketed&gt;</code> values with your actual Azure credentials. Do not commit them to git. Do not paste them in Discord. You know what you did last time.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="alert-panel" style="margin-top:40px; border-color: rgba(57,255,20,0.3); background: rgba(57,255,20,0.03);">
+      <div class="alert-panel-title" style="color: var(--accent3);">✓ TRANSMISSION COMPLETE</div>
+      <p>Your Arch Linux VHD is now floating somewhere in Microsoft's data centers. It has survived VirtualBox, a manual partition table, GRUB in BIOS mode, and the Azure provisioning process. Respect it accordingly.</p>
+    </div>
+
+  </section>
+
+</main>
+
+<footer class="container">
+  POTATOSIPS STARPORT // ARCH→AZURE PROTOCOL // BIOS MODE // END OF DOCUMENT
+</footer>
+
+<script>
+  function copyCmd(btn) {
+    const pre = btn.closest('.cmd-block').querySelector('pre');
+    const text = pre.innerText
+      .replace(/^\$ /gm, '')
+      .replace(/^# .*/gm, '')
+      .trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 1800);
+    });
+  }
+
+  // Highlight active nav on scroll
+  const sections = document.querySelectorAll('section');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(l => l.style.borderBottomColor = 'transparent');
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) {
+          active.style.color = 'var(--accent)';
+          active.style.borderBottomColor = 'var(--accent)';
+        }
+      }
+    });
+  }, { threshold: 0.3 });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
