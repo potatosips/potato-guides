@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>File Browser AutoForge Tutorial</title>
+  <style>
+    :root {
+      --bg:#050712;--card:rgba(10,18,40,.84);--text:#eef8ff;--muted:#a6b8d8;
+      --cyan:#00eaff;--blue:#5d8cff;--purple:#b16cff;--green:#4cff9a;--yellow:#ffe66d;
+      --border:rgba(0,234,255,.22);--border2:rgba(0,234,255,.45);
+      --mono:"Cascadia Code","Fira Code",Consolas,monospace;--sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+    body{min-height:100vh;background:radial-gradient(circle at 12% 8%,rgba(0,234,255,.18),transparent 28%),radial-gradient(circle at 88% 12%,rgba(177,108,255,.18),transparent 26%),linear-gradient(135deg,#03040b 0%,#081326 48%,#050712 100%);color:var(--text);font-family:var(--sans);}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,234,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(0,234,255,.045) 1px,transparent 1px);background-size:46px 46px;mask-image:linear-gradient(to bottom,#000,transparent 88%);z-index:-1}
+    .layout{width:min(1240px,calc(100% - 32px));margin:0 auto;padding:28px 0 64px}
+    .topbar{position:sticky;top:14px;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:1px solid var(--border);border-radius:22px;background:rgba(4,8,20,.74);backdrop-filter:blur(18px);box-shadow:0 0 34px rgba(0,234,255,.14)}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
+    .orb{width:15px;height:15px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan),0 0 34px var(--blue)}
+    .nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.nav a{padding:8px 10px;color:var(--muted);text-decoration:none;border:1px solid transparent;border-radius:999px;font-size:.9rem}.nav a:hover{color:var(--text);border-color:var(--border);background:rgba(0,234,255,.08)}
+    .hero{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;padding:70px 0 42px}
+    .eyebrow{display:inline-flex;width:fit-content;padding:8px 12px;border:1px solid rgba(76,255,154,.35);border-radius:999px;background:rgba(76,255,154,.08);color:var(--green);font-weight:800;margin-bottom:18px}
+    h1{max-width:850px;font-size:clamp(2.55rem,7vw,6rem);line-height:.94;letter-spacing:-.065em;text-shadow:0 0 36px rgba(0,234,255,.18)}h1 span{color:var(--cyan)}
+    .lead{margin-top:24px;max-width:760px;color:var(--muted);font-size:1.08rem;line-height:1.8}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+    .button{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 16px;border-radius:14px;border:1px solid var(--border2);background:linear-gradient(135deg,rgba(0,234,255,.16),rgba(93,140,255,.12));color:var(--text);text-decoration:none;font-weight:900}
+    .button.secondary{border-color:rgba(177,108,255,.42);background:rgba(177,108,255,.08)}
+    .terminal,.code-panel,.card,details{border:1px solid var(--border);border-radius:22px;background:var(--card);box-shadow:0 0 26px rgba(0,234,255,.07);overflow:hidden}
+    .terminal-top,.code-header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px 16px;background:rgba(255,255,255,.035);border-bottom:1px solid rgba(0,234,255,.14)}
+    .dots{display:flex;gap:8px}.dot{width:11px;height:11px;border-radius:50%}.red{background:#ff5c8a}.yellow{background:var(--yellow)}.green{background:var(--green)}
+    .terminal-body{padding:22px;color:#dffbff;font-family:var(--mono);font-size:.92rem;line-height:1.7}.cyan{color:var(--cyan)}.ok{color:var(--green)}.purple{color:var(--purple)}
+    section{scroll-margin-top:110px;margin-top:34px}.section-header{margin-bottom:22px}.section-header h2{font-size:clamp(1.85rem,4vw,3.15rem);line-height:1.05;letter-spacing:-.045em}.section-header p{margin-top:12px;max-width:850px;color:var(--muted);line-height:1.75}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.grid.two{grid-template-columns:repeat(2,1fr)}
+    .card{padding:22px}.card h3{margin-bottom:10px;color:var(--cyan);font-size:1.13rem}.card p,.card li{color:var(--muted);line-height:1.72}.card ul{display:grid;gap:8px;padding-left:18px}
+    .steps{display:grid;gap:14px}.step{display:grid;grid-template-columns:58px 1fr;gap:16px;align-items:start;padding:18px;border:1px solid rgba(177,108,255,.26);border-radius:22px;background:rgba(10,18,40,.66)}.step-number{width:44px;height:44px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(135deg,var(--cyan),var(--green));color:#03101b;font-weight:1000}.step p{color:var(--muted);line-height:1.7}
+    pre{overflow-x:auto;padding:20px;color:#e4fbff;font-family:var(--mono);font-size:.9rem;line-height:1.6}code{font-family:var(--mono)}.copy-btn{border:1px solid rgba(0,234,255,.42);border-radius:12px;background:rgba(0,234,255,.08);color:var(--text);padding:8px 12px;cursor:pointer;font-weight:900}
+    .inline-code{padding:2px 6px;border:1px solid rgba(0,234,255,.18);border-radius:8px;background:rgba(0,234,255,.07);color:var(--text);font-family:var(--mono);font-size:.9em}
+    textarea.script-box{width:100%;min-height:680px;resize:vertical;display:block;border:none;outline:none;padding:20px;background:rgba(3,6,16,.96);color:#e4fbff;font-family:var(--mono);font-size:.86rem;line-height:1.58;white-space:pre;overflow:auto}
+    .callout{border:1px solid rgba(255,230,109,.34);border-radius:22px;padding:18px;background:rgba(255,230,109,.08);color:var(--muted);line-height:1.75}.callout strong{color:var(--yellow)}
+    details{padding:16px 18px}summary{cursor:pointer;font-weight:900}details p{margin-top:12px;color:var(--muted);line-height:1.7}
+    .footer{margin-top:44px;padding:22px;text-align:center;color:var(--muted);border:1px solid rgba(0,234,255,.15);border-radius:22px;background:rgba(4,8,20,.72)}
+    @media(max-width:980px){.hero,.grid,.grid.two{grid-template-columns:1fr}.topbar{position:static;flex-direction:column;align-items:flex-start}.nav{justify-content:flex-start}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <header class="topbar">
+      <div class="brand"><span class="orb"></span>File Browser AutoForge</div>
+      <nav class="nav">
+        <a href="#overview">Overview</a><a href="#capabilities">Capabilities</a><a href="#setup">Setup</a><a href="#script">Script</a><a href="#compose">Compose</a><a href="#troubleshooting">Troubleshooting</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="overview">
+        <div>
+          <div class="eyebrow">🚀 Tutorial Website · Self-Hosted File Browser</div>
+          <h1>Deploy File Browser with an <span>auto-detecting Linux script</span>.</h1>
+          <p class="lead">This guide explains what the script does, what it installs, how it detects your server, how the Docker image is built, and how users can run it with Docker Compose.</p>
+          <div class="hero-actions"><a class="button" href="#setup">Start Setup</a><a class="button secondary" href="#script">Copy Script</a></div>
+        </div>
+        <div class="terminal">
+          <div class="terminal-top"><div class="dots"><span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span></div></div>
+          <div class="terminal-body">
+            <div><span class="cyan">$</span> ./setup-filebrowser.sh</div><br>
+            <div><span class="ok">[OK]</span> Linux detected</div>
+            <div><span class="ok">[OK]</span> CPU architecture detected</div>
+            <div><span class="ok">[OK]</span> Missing packages installed only if needed</div>
+            <div><span class="ok">[OK]</span> Docker or Podman prepared</div>
+            <div><span class="purple">[BUILD]</span> my-filebrowser image ready</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="capabilities">
+        <div class="section-header"><h2>What the script does</h2><p>The script automates the boring parts: OS detection, CPU architecture detection, package checking, container engine setup, File Browser download, Dockerfile generation, and image build.</p></div>
+        <div class="grid">
+          <article class="card"><h3>Linux detection</h3><p>Detects Debian, Ubuntu, Fedora, RHEL-like, Arch, openSUSE, Alpine, and their package managers.</p></article>
+          <article class="card"><h3>CPU detection</h3><p>Supports AMD64, ARM64, ARMv7, ARMv6, 386, s390x, and ppc64le.</p></article>
+          <article class="card"><h3>Package-aware</h3><p>Checks required packages first and installs only what is missing.</p></article>
+          <article class="card"><h3>Docker first</h3><p>Uses Docker when available and tries to install/start it when missing.</p></article>
+          <article class="card"><h3>Podman fallback</h3><p>Can fall back to Podman if Docker is not usable.</p></article>
+          <article class="card"><h3>Local image build</h3><p>Builds <span class="inline-code">my-filebrowser</span>, then Compose runs that image.</p></article>
+        </div>
+      </section>
+
+      <section id="setup">
+        <div class="section-header"><h2>Setup flow</h2><p>Users only need to save the script, run it, then start Docker Compose.</p></div>
+        <div class="steps">
+          <div class="step"><div class="step-number">01</div><div><h3>Create folder</h3><p>Use a clean project folder for the script, compose file, files, and database.</p></div></div>
+          <div class="step"><div class="step-number">02</div><div><h3>Run script</h3><p>The script scans the system, installs missing tools, and builds the image.</p></div></div>
+          <div class="step"><div class="step-number">03</div><div><h3>Start Compose</h3><p>Docker Compose starts File Browser with persistent folders and safer defaults.</p></div></div>
+        </div>
+        <div class="code-panel"><div class="code-header"><strong>Project folder</strong><button class="copy-btn" data-target="folder-code">Copy</button></div><pre id="folder-code"><code>mkdir -p ~/filebrowser-autoforge
+cd ~/filebrowser-autoforge</code></pre></div>
+      </section>
+
+      <section id="script">
+        <div class="section-header"><h2>Full setup script</h2><p>Save this as <span class="inline-code">setup-filebrowser.sh</span>. This is the actual script users should run before using Docker Compose.</p></div>
+        <div class="code-panel"><div class="code-header"><strong>setup-filebrowser.sh</strong><button class="copy-btn" data-target="script-code">Copy</button></div><textarea class="script-box" id="script-code" readonly spellcheck="false">#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# File Browser AutoForge
+# Detects Linux + CPU architecture, installs only missing packages,
+# prepares Docker or Podman, downloads the correct File Browser binary,
+# and builds a local image for Docker Compose.
+
+IMAGE_NAME=&quot;${FILEBROWSER_IMAGE:-my-filebrowser}&quot;
+REPO=&quot;${FILEBROWSER_REPO:-filebrowser/filebrowser}&quot;
+ALLOW_PODMAN_FALLBACK=&quot;${ALLOW_PODMAN_FALLBACK:-1}&quot;
+WORK_DIR=&quot;$(mktemp -d)&quot;
+
+cleanup(){ rm -rf &quot;$WORK_DIR&quot;; }
+trap cleanup EXIT
+trap &#x27;echo &quot;[x] Failed at line $LINENO: $BASH_COMMAND&quot; &gt;&amp;2&#x27; ERR
+
+if [[ -t 1 ]]; then
+  RED=&#x27;\033[0;31m&#x27;; GREEN=&#x27;\033[0;32m&#x27;; YELLOW=&#x27;\033[1;33m&#x27;
+  CYAN=&#x27;\033[0;36m&#x27;; BOLD=&#x27;\033[1m&#x27;; RESET=&#x27;\033[0m&#x27;
+else
+  RED=&#x27;&#x27;; GREEN=&#x27;&#x27;; YELLOW=&#x27;&#x27;; CYAN=&#x27;&#x27;; BOLD=&#x27;&#x27;; RESET=&#x27;&#x27;
+fi
+
+log(){ echo -e &quot;${CYAN}[*]${RESET} $*&quot;; }
+ok(){ echo -e &quot;${GREEN}[OK]${RESET} $*&quot;; }
+warn(){ echo -e &quot;${YELLOW}[!]${RESET} $*&quot;; }
+die(){ echo -e &quot;${RED}[x]${RESET} $*&quot; &gt;&amp;2; exit 1; }
+
+SUDO=()
+ENGINE=()
+ENGINE_NAME=&quot;&quot;
+
+setup_privilege(){
+  if [[ &quot;$EUID&quot; -eq 0 ]]; then
+    SUDO=()
+    ok &quot;Running as root.&quot;
+  else
+    command -v sudo &gt;/dev/null 2&gt;&amp;1 || die &quot;sudo missing. Run as root or install sudo.&quot;
+    sudo -v
+    SUDO=(sudo)
+    ok &quot;Using sudo.&quot;
+  fi
+}
+
+as_root(){ &quot;${SUDO[@]}&quot; &quot;$@&quot;; }
+
+detect_os(){
+  OS_ID=&quot;unknown&quot;
+  OS_PRETTY=&quot;Unknown Linux&quot;
+  OS_VERSION_CODENAME=&quot;&quot;
+
+  if [[ -r /etc/os-release ]]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    OS_ID=&quot;${ID:-unknown}&quot;
+    OS_PRETTY=&quot;${PRETTY_NAME:-$OS_ID}&quot;
+    OS_VERSION_CODENAME=&quot;${VERSION_CODENAME:-${UBUNTU_CODENAME:-}}&quot;
+  fi
+
+  ok &quot;Linux detected: $OS_PRETTY&quot;
+}
+
+detect_pkg_manager(){
+  if command -v apt-get &gt;/dev/null 2&gt;&amp;1; then PM=&quot;apt&quot;
+  elif command -v dnf &gt;/dev/null 2&gt;&amp;1; then PM=&quot;dnf&quot;
+  elif command -v yum &gt;/dev/null 2&gt;&amp;1; then PM=&quot;yum&quot;
+  elif command -v pacman &gt;/dev/null 2&gt;&amp;1; then PM=&quot;pacman&quot;
+  elif command -v zypper &gt;/dev/null 2&gt;&amp;1; then PM=&quot;zypper&quot;
+  elif command -v apk &gt;/dev/null 2&gt;&amp;1; then PM=&quot;apk&quot;
+  else die &quot;No supported package manager found.&quot;; fi
+
+  ok &quot;Package manager: $PM&quot;
+}
+
+pkg_update(){
+  case &quot;$PM&quot; in
+    apt) as_root apt-get update -qq ;;
+    pacman) as_root pacman -Sy --noconfirm --quiet ;;
+    zypper) as_root zypper refresh -q ;;
+    apk) as_root apk update &gt;/dev/null ;;
+    *) true ;;
+  esac
+}
+
+pkg_install(){
+  case &quot;$PM&quot; in
+    apt) as_root apt-get install -y -qq &quot;$@&quot; ;;
+    dnf) as_root dnf install -y -q &quot;$@&quot; ;;
+    yum) as_root yum install -y -q &quot;$@&quot; ;;
+    pacman) as_root pacman -S --needed --noconfirm --quiet &quot;$@&quot; ;;
+    zypper) as_root zypper install -y -q &quot;$@&quot; ;;
+    apk) as_root apk add --quiet &quot;$@&quot; ;;
+  esac
+}
+
+is_pkg_installed(){
+  local pkg=&quot;$1&quot;
+  case &quot;$PM&quot; in
+    apt) dpkg-query -W -f=&#x27;${Status}&#x27; &quot;$pkg&quot; 2&gt;/dev/null | grep -q &quot;install ok installed&quot; ;;
+    dnf|yum|zypper) rpm -q &quot;$pkg&quot; &gt;/dev/null 2&gt;&amp;1 ;;
+    pacman) pacman -Q &quot;$pkg&quot; &gt;/dev/null 2&gt;&amp;1 ;;
+    apk) apk info -e &quot;$pkg&quot; &gt;/dev/null 2&gt;&amp;1 ;;
+    *) return 1 ;;
+  esac
+}
+
+install_missing_packages(){
+  local missing=()
+  for pkg in &quot;$@&quot;; do
+    if is_pkg_installed &quot;$pkg&quot;; then
+      ok &quot;$pkg already installed.&quot;
+    else
+      missing+=(&quot;$pkg&quot;)
+    fi
+  done
+
+  if [[ &quot;${#missing[@]}&quot; -gt 0 ]]; then
+    log &quot;Installing missing packages: ${missing[*]}&quot;
+    pkg_install &quot;${missing[@]}&quot;
+  else
+    ok &quot;All required packages already installed.&quot;
+  fi
+}
+
+detect_arch(){
+  MACHINE=&quot;$(uname -m)&quot;
+
+  case &quot;$MACHINE&quot; in
+    x86_64|amd64) ARCH=&quot;linux-amd64&quot;; JQ_ARCH=&quot;amd64&quot;; DOCKER_PLATFORM=&quot;linux/amd64&quot; ;;
+    aarch64|arm64) ARCH=&quot;linux-arm64&quot;; JQ_ARCH=&quot;arm64&quot;; DOCKER_PLATFORM=&quot;linux/arm64&quot; ;;
+    armv7l|armv7*) ARCH=&quot;linux-armv7&quot;; JQ_ARCH=&quot;armhf&quot;; DOCKER_PLATFORM=&quot;linux/arm/v7&quot; ;;
+    armv6l) ARCH=&quot;linux-armv6&quot;; JQ_ARCH=&quot;armel&quot;; DOCKER_PLATFORM=&quot;linux/arm/v6&quot; ;;
+    i386|i486|i586|i686) ARCH=&quot;linux-386&quot;; JQ_ARCH=&quot;i386&quot;; DOCKER_PLATFORM=&quot;linux/386&quot; ;;
+    s390x) ARCH=&quot;linux-s390x&quot;; JQ_ARCH=&quot;s390x&quot;; DOCKER_PLATFORM=&quot;linux/s390x&quot; ;;
+    ppc64le) ARCH=&quot;linux-ppc64le&quot;; JQ_ARCH=&quot;ppc64le&quot;; DOCKER_PLATFORM=&quot;linux/ppc64le&quot; ;;
+    *) die &quot;Unsupported CPU architecture: $MACHINE&quot; ;;
+  esac
+
+  CPU_THREADS=&quot;$(getconf _NPROCESSORS_ONLN 2&gt;/dev/null || echo unknown)&quot;
+  CPU_MODEL=&quot;Unknown CPU&quot;
+
+  if command -v lscpu &gt;/dev/null 2&gt;&amp;1; then
+    CPU_MODEL=&quot;$(lscpu | awk -F: &#x27;/Model name|BIOS Model name|Processor/ {
+      gsub(/^[ \t]+/, &quot;&quot;, $2)
+      if ($2 != &quot;&quot;) { print $2; exit }
+    }&#x27;)&quot;
+    CPU_MODEL=&quot;${CPU_MODEL:-Unknown CPU}&quot;
+  fi
+
+  ok &quot;CPU: $CPU_MODEL&quot;
+  ok &quot;Threads: $CPU_THREADS&quot;
+  ok &quot;Architecture: $MACHINE -&gt; $ARCH&quot;
+  ok &quot;Container platform: $DOCKER_PLATFORM&quot;
+}
+
+install_base_packages(){
+  log &quot;Checking required base packages...&quot;
+
+  case &quot;$PM&quot; in
+    apt) pkg_update; install_missing_packages ca-certificates curl tar gzip gnupg ;;
+    dnf|yum) install_missing_packages ca-certificates curl tar gzip ;;
+    pacman) pkg_update; install_missing_packages ca-certificates curl tar gzip ;;
+    zypper) pkg_update; install_missing_packages ca-certificates curl tar gzip ;;
+    apk) pkg_update; install_missing_packages ca-certificates curl tar gzip ;;
+  esac
+
+  ok &quot;Base package check complete.&quot;
+}
+
+install_jq(){
+  if command -v jq &gt;/dev/null 2&gt;&amp;1; then
+    ok &quot;jq already installed.&quot;
+    return
+  fi
+
+  if is_pkg_installed jq; then
+    ok &quot;jq already installed.&quot;
+    return
+  fi
+
+  log &quot;Installing jq...&quot;
+
+  if pkg_install jq; then
+    ok &quot;jq installed.&quot;
+    return
+  fi
+
+  warn &quot;Package install failed. Trying static jq binary...&quot;
+  JQ_URL=&quot;https://github.com/jqlang/jq/releases/latest/download/jq-linux-${JQ_ARCH}&quot;
+
+  curl -fsSL &quot;$JQ_URL&quot; -o &quot;$WORK_DIR/jq&quot;
+  chmod +x &quot;$WORK_DIR/jq&quot;
+  as_root install -m 0755 &quot;$WORK_DIR/jq&quot; /usr/local/bin/jq
+
+  command -v jq &gt;/dev/null 2&gt;&amp;1 || die &quot;jq installation failed.&quot;
+  ok &quot;jq installed from static binary.&quot;
+}
+
+start_docker_service(){
+  if command -v systemctl &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [[ -d /run/systemd/system ]]; then
+    as_root systemctl enable --now docker || warn &quot;Could not start Docker with systemctl.&quot;
+  elif command -v rc-update &gt;/dev/null 2&gt;&amp;1 &amp;&amp; command -v rc-service &gt;/dev/null 2&gt;&amp;1; then
+    as_root rc-update add docker default || true
+    as_root rc-service docker start || warn &quot;Could not start Docker with OpenRC.&quot;
+  elif command -v service &gt;/dev/null 2&gt;&amp;1; then
+    as_root service docker start || warn &quot;Could not start Docker with service.&quot;
+  else
+    warn &quot;No supported init system found. Start Docker manually if required.&quot;
+  fi
+}
+
+set_container_engine(){
+  if command -v docker &gt;/dev/null 2&gt;&amp;1; then
+    if docker info &gt;/dev/null 2&gt;&amp;1; then
+      ENGINE=(docker)
+      ENGINE_NAME=&quot;docker&quot;
+      ok &quot;Using Docker.&quot;
+      return 0
+    fi
+
+    if [[ ${#SUDO[@]} -gt 0 ]] &amp;&amp; &quot;${SUDO[@]}&quot; docker info &gt;/dev/null 2&gt;&amp;1; then
+      ENGINE=(&quot;${SUDO[@]}&quot; docker)
+      ENGINE_NAME=&quot;sudo docker&quot;
+      ok &quot;Using Docker with sudo.&quot;
+      return 0
+    fi
+  fi
+
+  if [[ &quot;$ALLOW_PODMAN_FALLBACK&quot; == &quot;1&quot; ]] &amp;&amp; command -v podman &gt;/dev/null 2&gt;&amp;1; then
+    ENGINE=(podman)
+    ENGINE_NAME=&quot;podman&quot;
+    ok &quot;Using Podman fallback.&quot;
+    return 0
+  fi
+
+  return 1
+}
+
+install_docker_distro(){
+  log &quot;Trying distro Docker package...&quot;
+
+  case &quot;$PM&quot; in
+    apt) pkg_update; install_missing_packages docker.io || pkg_install docker.io || pkg_install docker ;;
+    dnf) install_missing_packages docker || pkg_install docker || pkg_install moby-engine ;;
+    yum) install_missing_packages docker || pkg_install docker || pkg_install moby-engine ;;
+    pacman) pkg_update; install_missing_packages docker ;;
+    zypper) pkg_update; install_missing_packages docker || pkg_install docker || pkg_install docker-ce ;;
+    apk) pkg_update; install_missing_packages docker ;;
+  esac
+}
+
+install_podman(){
+  log &quot;Installing Podman fallback...&quot;
+
+  case &quot;$PM&quot; in
+    apt) pkg_update; install_missing_packages podman ;;
+    dnf|yum) install_missing_packages podman ;;
+    pacman) pkg_update; install_missing_packages podman ;;
+    zypper) pkg_update; install_missing_packages podman ;;
+    apk) pkg_update; install_missing_packages podman ;;
+  esac
+
+  command -v podman &gt;/dev/null 2&gt;&amp;1 || return 1
+}
+
+install_container_engine(){
+  if set_container_engine; then return; fi
+
+  log &quot;Installing Docker...&quot;
+  install_docker_distro || warn &quot;Docker package installation failed.&quot;
+
+  start_docker_service
+  sleep 2
+
+  if set_container_engine; then return; fi
+
+  if [[ &quot;$ALLOW_PODMAN_FALLBACK&quot; == &quot;1&quot; ]]; then
+    warn &quot;Docker is not usable. Trying Podman fallback...&quot;
+    install_podman || die &quot;Could not install Docker or Podman.&quot;
+    set_container_engine || die &quot;No working container engine found.&quot;
+    return
+  fi
+
+  die &quot;Docker installed but is not usable. Start Docker manually.&quot;
+}
+
+fetch_latest_release(){
+  log &quot;Fetching latest File Browser release...&quot;
+
+  RELEASE_JSON=&quot;$(curl -fsSL &quot;https://api.github.com/repos/${REPO}/releases/latest&quot;)&quot;
+  LATEST=&quot;$(printf &#x27;%s&#x27; &quot;$RELEASE_JSON&quot; | jq -r &#x27;.tag_name // empty&#x27;)&quot;
+
+  [[ -n &quot;$LATEST&quot; ]] || die &quot;Could not detect latest release.&quot;
+
+  TARBALL=&quot;${ARCH}-filebrowser.tar.gz&quot;
+
+  ASSET_URL=&quot;$(printf &#x27;%s&#x27; &quot;$RELEASE_JSON&quot; | jq -r --arg name &quot;$TARBALL&quot; &#x27;
+    .assets[]?
+    | select(.name == $name)
+    | .browser_download_url
+  &#x27; | head -n1)&quot;
+
+  [[ -n &quot;$ASSET_URL&quot; ]] || die &quot;No release asset found for: $TARBALL&quot;
+
+  ok &quot;Latest version: $LATEST&quot;
+  ok &quot;Asset: $TARBALL&quot;
+}
+
+download_binary(){
+  log &quot;Downloading File Browser binary...&quot;
+
+  curl -fsSL &quot;$ASSET_URL&quot; -o &quot;$WORK_DIR/$TARBALL&quot;
+  tar -xzf &quot;$WORK_DIR/$TARBALL&quot; -C &quot;$WORK_DIR&quot;
+
+  [[ -f &quot;$WORK_DIR/filebrowser&quot; ]] || die &quot;filebrowser binary not found after extraction.&quot;
+
+  chmod +x &quot;$WORK_DIR/filebrowser&quot;
+  ok &quot;Binary downloaded and extracted.&quot;
+}
+
+write_dockerfile(){
+  log &quot;Writing Dockerfile...&quot;
+
+  cat &gt; &quot;$WORK_DIR/Dockerfile&quot; &lt;&lt;&#x27;DOCKERFILE&#x27;
+FROM alpine:3.20
+
+RUN apk add --no-cache ca-certificates tzdata wget \
+    &amp;&amp; addgroup -S filebrowser \
+    &amp;&amp; adduser -S -D -H -h /srv -s /sbin/nologin -G filebrowser filebrowser \
+    &amp;&amp; mkdir -p /srv /database \
+    &amp;&amp; chown -R filebrowser:filebrowser /srv /database
+
+COPY filebrowser /usr/local/bin/filebrowser
+
+WORKDIR /srv
+
+EXPOSE 80
+
+USER filebrowser
+
+ENTRYPOINT [&quot;filebrowser&quot;, &quot;--address&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;80&quot;, &quot;--root&quot;, &quot;/srv&quot;, &quot;--database&quot;, &quot;/database/filebrowser.db&quot;]
+DOCKERFILE
+
+  ok &quot;Dockerfile written.&quot;
+}
+
+build_image(){
+  log &quot;Building image: ${BOLD}${IMAGE_NAME}${RESET}&quot;
+
+  &quot;${ENGINE[@]}&quot; build \
+    --platform &quot;$DOCKER_PLATFORM&quot; \
+    -t &quot;$IMAGE_NAME&quot; \
+    &quot;$WORK_DIR&quot;
+
+  ok &quot;Image built successfully: $IMAGE_NAME&quot;
+}
+
+print_summary(){
+  echo &quot;&quot;
+  echo -e &quot;${BOLD}----------------------------------------${RESET}&quot;
+  echo -e &quot;${GREEN} File Browser image is ready.${RESET}&quot;
+  echo -e &quot;${BOLD}----------------------------------------${RESET}&quot;
+  echo &quot;&quot;
+  echo &quot;Detected:&quot;
+  echo &quot;  Linux:    $OS_PRETTY&quot;
+  echo &quot;  CPU arch: $MACHINE&quot;
+  echo &quot;  Platform: $DOCKER_PLATFORM&quot;
+  echo &quot;  Engine:   $ENGINE_NAME&quot;
+  echo &quot;  Image:    $IMAGE_NAME&quot;
+  echo &quot;&quot;
+  echo &quot;Next commands:&quot;
+  echo &quot;  mkdir -p files database&quot;
+  echo &quot;  docker compose up -d&quot;
+  echo &quot;&quot;
+  echo &quot;Open:&quot;
+  echo &quot;  http://SERVER-IP:8080&quot;
+  echo &quot;&quot;
+}
+
+main(){
+  detect_arch
+  detect_os
+  detect_pkg_manager
+  setup_privilege
+  install_base_packages
+  install_jq
+  install_container_engine
+  fetch_latest_release
+  download_binary
+  write_dockerfile
+  build_image
+  print_summary
+}
+
+main &quot;$@&quot;
+</textarea></div>
+        <div class="code-panel"><div class="code-header"><strong>Run it</strong><button class="copy-btn" data-target="run-code">Copy</button></div><pre id="run-code"><code>chmod +x setup-filebrowser.sh
+./setup-filebrowser.sh</code></pre></div>
+      </section>
+
+      <section id="compose">
+        <div class="section-header"><h2>Full Docker Compose setup</h2><p>Save this as <span class="inline-code">docker-compose.yml</span> after the image is built. It includes persistent storage, restart policy, healthcheck, log rotation, and security hardening.</p></div>
+        <div class="code-panel"><div class="code-header"><strong>docker-compose.yml</strong><button class="copy-btn" data-target="compose-code">Copy</button></div><pre id="compose-code"><code>services:
+  filebrowser:
+    image: ${FILEBROWSER_IMAGE:-my-filebrowser}
+    container_name: ${FILEBROWSER_CONTAINER:-filebrowser}
+
+    restart: unless-stopped
+    init: true
+
+    ports:
+      - &quot;${FILEBROWSER_PORT:-8080}:80&quot;
+
+    volumes:
+      - type: bind
+        source: ./files
+        target: /srv
+      - type: bind
+        source: ./database
+        target: /database
+
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+
+    cap_add:
+      - NET_BIND_SERVICE
+
+    pids_limit: 256
+    stop_grace_period: 20s
+
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;wget -q --spider http://127.0.0.1:80/ || exit 1&quot;]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: &quot;10m&quot;
+        max-file: &quot;3&quot;
+
+    networks:
+      - filebrowser_net
+
+networks:
+  filebrowser_net:
+    name: filebrowser_net
+    driver: bridge
+</code></pre></div>
+        <div class="code-panel"><div class="code-header"><strong>Start File Browser</strong><button class="copy-btn" data-target="start-code">Copy</button></div><pre id="start-code"><code>mkdir -p files database
+docker compose up -d
+docker compose ps
+docker compose logs -f filebrowser</code></pre></div>
+      </section>
+
+      <section id="access">
+        <div class="section-header"><h2>Access and firewall</h2><p>Open File Browser from your browser after Compose starts.</p></div>
+        <div class="grid two">
+          <article class="card"><h3>URL</h3><p>Open <span class="inline-code">http://SERVER-IP:8080</span>.</p></article>
+          <article class="card"><h3>Login</h3><p>Default login is usually <span class="inline-code">admin</span> / <span class="inline-code">admin</span>. Change it immediately.</p></article>
+        </div>
+        <div class="code-panel"><div class="code-header"><strong>UFW firewall</strong><button class="copy-btn" data-target="ufw-code">Copy</button></div><pre id="ufw-code"><code>sudo ufw allow 8080/tcp
+sudo ufw reload
+sudo ufw status</code></pre></div>
+        <div class="callout" style="margin-top:16px;"><strong>Cloud VPS note:</strong> also allow TCP port <span class="inline-code">8080</span> in Oracle/AWS/Azure/Google/Hetzner security rules.</div>
+      </section>
+
+      <section id="troubleshooting">
+        <div class="section-header"><h2>Troubleshooting</h2><p>Common problems and quick fixes.</p></div>
+        <details open><summary>Docker Compose says image not found</summary><p>Run <span class="inline-code">./setup-filebrowser.sh</span> first. It builds the local image named <span class="inline-code">my-filebrowser</span>.</p></details>
+        <details><summary>Port 8080 does not open</summary><p>Check <span class="inline-code">docker compose ps</span>, logs, Linux firewall, and VPS security rules.</p></details>
+        <details><summary>Permission problem</summary><p>Create folders first with <span class="inline-code">mkdir -p files database</span>. For testing only, use <span class="inline-code">chmod -R 777 files database</span>.</p></details>
+        <details><summary>Need another port</summary><p>Create a <span class="inline-code">.env</span> file with <span class="inline-code">FILEBROWSER_PORT=8090</span>, then restart Compose.</p></details>
+      </section>
+    </main>
+
+    <footer class="footer">File Browser AutoForge Tutorial · Script + Compose included.</footer>
+  </div>
+
+  <script>
+    document.querySelectorAll(".copy-btn").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const target = document.getElementById(button.dataset.target);
+        const text = target ? (target.value || target.innerText || target.textContent || "") : "";
+        if (!text) return;
+        await navigator.clipboard.writeText(text);
+        const old = button.textContent;
+        button.textContent = "Copied!";
+        setTimeout(() => button.textContent = old, 1200);
+      });
+    });
+  </script>
+</body>
+</html>
