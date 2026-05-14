@@ -6,6 +6,7 @@ export default {
     const routes = {
       "batt-health-mi11x.potatosips.oporajita.win": "/battery-health-check-Mi11x",
       "remote-wol-guide.potatosips.oporajita.win": "/Remote-wol-guide"
+      "dnssec-dot-over-stubby.potatosips.oporajita.win": "/DNSSEC-DOT-over-stubby"
     };
 
     const folder = routes[host];
