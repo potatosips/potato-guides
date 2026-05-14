@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>POTATOSIPS // IPv6 DDNS // CLOUDFLARE UPLINK</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00f5ff;
+    --green: #39ff14;
+    --amber: #ffb300;
+    --red: #ff2222;
+    --bg: #020810;
+    --bg2: #050e1a;
+    --surface: #0a1628;
+    --surface2: #0d1e35;
+    --border: #1a3a5c;
+    --text: #c8dff0;
+    --dim: #4a6a88;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* SCANLINES overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.06) 2px,
+      rgba(0,0,0,0.06) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* GRID BG */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 60px 40px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,245,255,0.07) 0%, transparent 70%);
+  }
+
+  .glitch-wrap { position: relative; display: inline-block; }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 5vw, 3.8rem);
+    font-weight: 900;
+    color: var(--cyan);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    position: relative;
+    animation: flicker 8s infinite;
+  }
+
+  h1::before, h1::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0; width: 100%;
+    opacity: 0.6;
+  }
+  h1::before { color: #ff0077; clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%); animation: glitch1 4s infinite; }
+  h1::after  { color: var(--green); clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); animation: glitch2 5s infinite; }
+
+  @keyframes glitch1 {
+    0%,94%,100%   { transform: translate(0); }
+    95%           { transform: translate(-3px, 1px); }
+    97%           { transform: translate(3px, -1px); }
+  }
+  @keyframes glitch2 {
+    0%,96%,100%   { transform: translate(0); }
+    97%           { transform: translate(4px, 2px); }
+    99%           { transform: translate(-4px, -2px); }
+  }
+  @keyframes flicker {
+    0%,95%,100%   { opacity: 1; }
+    96%           { opacity: 0.85; }
+    97%           { opacity: 1; }
+    98%           { opacity: 0.9; }
+  }
+
+  .tagline {
+    margin-top: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--green);
+    letter-spacing: 0.2em;
+    animation: blink-tagline 3s infinite;
+  }
+  @keyframes blink-tagline {
+    0%,49%,100% { opacity: 1; }
+    50%,52%     { opacity: 0.3; }
+  }
+
+  .dark-humor {
+    margin-top: 20px;
+    display: inline-block;
+    background: rgba(255,180,0,0.06);
+    border: 1px solid rgba(255,180,0,0.3);
+    border-left: 3px solid var(--amber);
+    padding: 10px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--amber);
+    max-width: 680px;
+    text-align: left;
+    position: relative;
+  }
+  .dark-humor::before { content: '// '; color: var(--dim); }
+
+
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 100px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── SECTION ── */
+  section {
+    margin-bottom: 64px;
+    animation: fadeup 0.6s ease both;
+  }
+  @keyframes fadeup {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1rem, 2.5vw, 1.45rem);
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  h2 .step-num {
+    font-size: 0.65rem;
+    background: var(--cyan);
+    color: var(--bg);
+    padding: 3px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+
+  h3 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    color: var(--green);
+    margin: 24px 0 10px;
+    letter-spacing: 0.08em;
+  }
+
+  p { margin-bottom: 14px; font-size: 0.95rem; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-left: 3px solid var(--cyan);
+    background: rgba(0,245,255,0.04);
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 0.88rem;
+  }
+  .callout.warn  { border-color: var(--amber); background: rgba(255,180,0,0.04); color: var(--amber); }
+  .callout.dead  { border-color: var(--red);   background: rgba(255,34,34,0.04); color: #ff6666; }
+  .callout.ok    { border-color: var(--green);  background: rgba(57,255,20,0.04); color: var(--green); }
+
+  .callout-icon { margin-right: 8px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    position: relative;
+    background: #020c18;
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--cyan);
+    border-radius: 2px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+  }
+
+  .code-dots { display: flex; gap: 5px; }
+  .code-dots span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--border);
+  }
+  .code-dots span:nth-child(1) { background: #ff5f57; }
+  .code-dots span:nth-child(2) { background: #ffbd2e; }
+  .code-dots span:nth-child(3) { background: #28ca41; }
+
+  pre {
+    padding: 20px 18px;
+    overflow-x: auto;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: #9ec8e8;
+    tab-size: 4;
+  }
+
+  pre .kw  { color: var(--cyan); }
+  pre .str { color: #98e08a; }
+  pre .cmt { color: var(--dim); font-style: italic; }
+  pre .var { color: #e8c97a; }
+  pre .num { color: #c792ea; }
+  pre .func{ color: #82aaff; }
+
+  /* copy btn */
+  .copy-btn {
+    position: absolute;
+    top: 44px;
+    right: 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 2;
+  }
+  .copy-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    margin: 16px 0;
+  }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    color: var(--cyan);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid rgba(26,58,92,0.5);
+    color: var(--text);
+    vertical-align: top;
+  }
+  tr:hover td { background: rgba(0,245,255,0.02); }
+  td .mono { font-family: 'Share Tech Mono', monospace; color: var(--green); }
+
+  /* ── INLINE CODE ── */
+  code {
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(0,245,255,0.07);
+    border: 1px solid rgba(0,245,255,0.15);
+    color: var(--cyan);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-size: 0.85em;
+  }
+
+  /* ── FILE PATH TAG ── */
+  .filepath {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--amber);
+    background: rgba(255,180,0,0.07);
+    border: 1px solid rgba(255,180,0,0.2);
+    padding: 2px 10px;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .filepath::before { content: '📁 '; }
+
+  /* ── STEPS LIST ── */
+  ol.steps { counter-reset: step; list-style: none; padding: 0; }
+  ol.steps li {
+    counter-increment: step;
+    padding: 12px 16px 12px 52px;
+    position: relative;
+    border-left: 1px solid var(--border);
+    margin-bottom: 4px;
+  }
+  ol.steps li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 10px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    opacity: 0.7;
+  }
+
+  /* ── TERMINAL OUTPUT ── */
+  .terminal {
+    background: #010a10;
+    border: 1px solid #0d3322;
+    border-top: 2px solid var(--green);
+    padding: 16px 18px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--green);
+    margin: 12px 0;
+    position: relative;
+  }
+  .terminal::before {
+    content: '● TERMINAL OUTPUT';
+    display: block;
+    font-size: 0.6rem;
+    color: var(--dim);
+    letter-spacing: 0.2em;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #0d3322;
+  }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    margin: 20px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    overflow-x: auto;
+  }
+  .flow-node {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    color: var(--cyan);
+    white-space: nowrap;
+    text-align: center;
+    min-width: 100px;
+  }
+  .flow-node.active { border-color: var(--green); color: var(--green); }
+  .flow-arrow {
+    color: var(--dim);
+    padding: 0 6px;
+    font-size: 1.1rem;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 40px;
+    border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--dim);
+    letter-spacing: 0.15em;
+    position: relative;
+    z-index: 1;
+  }
+  footer .blink { animation: blink 1.2s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--dim); }
+
+  /* ── PULSE DOT ── */
+  .pulse {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    margin-right: 8px;
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(57,255,20,0.6); }
+    50%      { box-shadow: 0 0 0 6px rgba(57,255,20,0); }
+  }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    pre { font-size: 0.72rem; }
+    .copy-btn { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="section-label">SYSTEM UPLINK // DYNAMIC DNS PROTOCOL</div>
+  <div class="glitch-wrap">
+    <h1 data-text="CLOUDFLARE IPv6 DDNS">CLOUDFLARE IPv6 DDNS</h1>
+  </div>
+  <div class="tagline">▸ WIN11 · NSSM · POWERSHELL · AAAA RECORD UPDATER ◂</div>
+  <div class="dark-humor" style="margin-top:24px;">
+    Your ISP hands out a new IPv6 every reboot like free candy. Your server disappears into the void.
+    This script pulls it back from oblivion — automatically, silently, every time you dare to restart.
+    You're basically duct-taping your identity onto the internet and hoping nobody notices.
+  </div>
+</header>
+
+
+
+<main>
+
+<!-- ── OVERVIEW ── -->
+<section id="overview">
+  <div class="section-label">SECTION 00 // MISSION BRIEF</div>
+  <h2><span class="step-num">00</span> Overview</h2>
+
+  <p>
+    Your Windows 11 machine has a <strong>public IPv6 address</strong> — great. The problem is your ISP
+    changes it whenever it feels like it (which is often, and always at the worst possible moment,
+    like a cat knocking things off shelves at 3 AM). This setup keeps your Cloudflare DNS record
+    synchronized automatically, so <code>potatosips.yourdomain.win</code> always resolves to wherever
+    your machine actually is in the IPv6 universe.
+  </p>
+
+  <div class="flow">
+    <div class="flow-node">WIN11 PC<br><span style="color:var(--dim);font-size:0.65rem;">IPv6 changes</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node active">PS1 SCRIPT<br><span style="color:var(--dim);font-size:0.65rem;">detects IP</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">CLOUDFLARE API<br><span style="color:var(--dim);font-size:0.65rem;">AAAA record</span></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node">DNS RESOLVED<br><span style="color:var(--dim);font-size:0.65rem;">world sees you</span></div>
+  </div>
+
+  <div class="callout">
+    <span class="callout-icon">⬡</span>
+    Two files live in <code>C:\Potatosips_DDNS_Cloudflare\</code> and a Windows service (via NSSM) runs the
+    updater script on every system start. No scheduler needed. No crying required.
+  </div>
+</section>
+
+<!-- ── PREREQS ── -->
+<section id="prereqs">
+  <div class="section-label">SECTION 01 // REQUIREMENTS</div>
+  <h2><span class="step-num">01</span> Prerequisites</h2>
+
+  <table>
+    <thead>
+      <tr><th>COMPONENT</th><th>REQUIREMENT</th><th>NOTES</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="mono">OS</span></td>
+        <td>Windows 11</td>
+        <td>PowerShell 5.1+ included</td>
+      </tr>
+      <tr>
+        <td><span class="mono">IPv6</span></td>
+        <td>Public IPv6 on this machine</td>
+        <td>Check via <code>ipconfig</code> — look for a non-<code>fe80::</code> address</td>
+      </tr>
+      <tr>
+        <td><span class="mono">NSSM</span></td>
+        <td>Placed at <code>C:\tools\nssm.exe</code></td>
+        <td><a href="https://nssm.cc/download" style="color:var(--cyan);">nssm.cc/download</a></td>
+      </tr>
+      <tr>
+        <td><span class="mono">Domain</span></td>
+        <td>Managed by Cloudflare</td>
+        <td>NS records must point to Cloudflare</td>
+      </tr>
+      <tr>
+        <td><span class="mono">Cloudflare acct</span></td>
+        <td>Free tier is fine</td>
+        <td>You need API token access</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <span class="callout-icon">▲</span>
+    No public IPv6? This whole setup is useless to you. Check with your ISP. Some of them are still
+    living in 2003 and serve IPv4 only. Sympathies.
+  </div>
+</section>
+
+<!-- ── CLOUDFLARE SETUP ── -->
+<section id="cloudflare">
+  <div class="section-label">SECTION 02 // CLOUDFLARE CONFIGURATION</div>
+  <h2><span class="step-num">02</span> Cloudflare Setup</h2>
+
+  <h3>▸ Get Your Zone ID</h3>
+  <ol class="steps">
+    <li>Log into <strong>dash.cloudflare.com</strong></li>
+    <li>Click your domain (e.g. <code>yourdomain.win</code>)</li>
+    <li>On the <strong>Overview</strong> page, scroll the right sidebar</li>
+    <li>Copy the <strong>Zone ID</strong> — it looks like <code>08bd92043d60dfb6a705add7fad4c147</code></li>
+  </ol>
+
+  <h3>▸ Create an API Token</h3>
+  <ol class="steps">
+    <li>Go to <strong>My Profile → API Tokens → Create Token</strong></li>
+    <li>Choose <strong>Create Custom Token</strong></li>
+    <li>Set Permission: <code>Zone › DNS › Edit</code></li>
+    <li>Zone Resource: <strong>Include → Specific zone → your domain</strong></li>
+    <li>Click <strong>Continue to summary → Create Token</strong></li>
+    <li>Copy the token immediately — <span style="color:var(--red);">Cloudflare will never show it again.</span> Classic.</li>
+  </ol>
+
+  <div class="callout dead">
+    <span class="callout-icon">☠</span>
+    Lost your API token? Cloudflare can't retrieve it either. Just delete it and make a new one.
+    Much like your dignity after spending 4 hours debugging DNS, some things simply cannot be recovered.
+  </div>
+
+  <h3>▸ Add the AAAA Record</h3>
+  <ol class="steps">
+    <li>In your domain → <strong>DNS → Records → Add record</strong></li>
+    <li>Type: <code>AAAA</code></li>
+    <li>Name: <code>potatosips</code> (or whatever subdomain you want)</li>
+    <li>IPv6 address: any valid address for now — the script will overwrite it</li>
+    <li>Proxy status: <strong>DNS only (grey cloud ☁)</strong> — orange proxy breaks IPv6</li>
+    <li>TTL: <code>2 min</code> (120 seconds) — so changes propagate fast</li>
+    <li>Save it</li>
+  </ol>
+
+  <div class="callout ok">
+    <span class="pulse"></span>
+    Proxy must be OFF (grey cloud). Cloudflare's proxy doesn't support IPv6 passthrough properly.
+    Orange cloud = your IPv6 vanishes into Cloudflare's data centers. Grey cloud = pure DNS. Use grey.
+  </div>
+</section>
+
+<!-- ── CONFIG FILE ── -->
+<section id="conf-file">
+  <div class="section-label">SECTION 03 // CONFIG FILE</div>
+  <h2><span class="step-num">03</span> Config File</h2>
+
+  <p>Create this file first. It holds all your credentials and settings.</p>
+
+  <div class="filepath">C:\Potatosips_DDNS_Cloudflare\potatosips-update-cloudflare-dns_conf.ps1</div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <span>potatosips-update-cloudflare-dns_conf.ps1 // POWERSHELL</span>
+    </div>
+    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+    <pre id="code-conf"><span class="cmt">##### Config</span>
+
+<span class="cmt">## Which IP should be used: internal or external</span>
+<span class="var">$what_ip</span> = <span class="str">"external"</span>
+
+<span class="cmt">## AAAA DNS record name (full FQDN)</span>
+<span class="var">$dns_record</span> = <span class="str">"potatosips.yourdomain.win"</span>
+
+<span class="cmt">## Cloudflare Zone ID (Overview sidebar)</span>
+<span class="var">$zoneid</span> = <span class="str">"YOUR_ZONE_ID_HERE"</span>
+
+<span class="cmt">## Cloudflare API Token (Zone › DNS › Edit)</span>
+<span class="var">$cloudflare_zone_api_token</span> = <span class="str">"YOUR_API_TOKEN_HERE"</span>
+
+<span class="cmt">## Proxy: $false = grey cloud (required for IPv6), $true = orange cloud (breaks IPv6)</span>
+<span class="var">$proxied</span> = <span class="num">$false</span>
+
+<span class="cmt">## TTL in seconds: 120-7200, or 1 for Auto</span>
+<span class="var">$ttl</span> = <span class="num">120</span></pre>
+  </div>
+
+  <table>
+    <thead><tr><th>VARIABLE</th><th>VALUE</th><th>DESCRIPTION</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mono">$what_ip</span></td><td><code>"external"</code></td><td>Use your public IPv6 (recommended). Use <code>"internal"</code> for LAN-only setups.</td></tr>
+      <tr><td><span class="mono">$dns_record</span></td><td><code>"sub.yourdomain.win"</code></td><td>Full FQDN of the AAAA record to update</td></tr>
+      <tr><td><span class="mono">$zoneid</span></td><td>32-char hex string</td><td>From Cloudflare Overview sidebar</td></tr>
+      <tr><td><span class="mono">$cloudflare_zone_api_token</span></td><td>Your API token</td><td>Keep this secret. Seriously.</td></tr>
+      <tr><td><span class="mono">$proxied</span></td><td><code>$false</code></td><td>Must be false for IPv6. Orange cloud = sadness.</td></tr>
+      <tr><td><span class="mono">$ttl</span></td><td><code>120</code></td><td>Seconds until DNS refresh. Lower = faster propagation.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ── SCRIPT FILE ── -->
+<section id="script-file">
+  <div class="section-label">SECTION 04 // MAIN SCRIPT</div>
+  <h2><span class="step-num">04</span> Main Script</h2>
+
+  <p>This is the script that does the actual work. It reads the config, detects your IPv6, compares
+  it to what Cloudflare has, and updates only if something changed. Efficient. Ruthless. Like a good
+  soldier who never sends unnecessary API calls.</p>
+
+  <div class="filepath">C:\Potatosips_DDNS_Cloudflare\potatosips-update-cloudflare-dns-ipv6-only.ps1</div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <span>potatosips-update-cloudflare-dns-ipv6-only.ps1 // POWERSHELL</span>
+    </div>
+    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+    <pre id="code-script">[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+<span class="kw">try</span> {
+    . <span class="str">"$PSScriptRoot\potatosips-update-cloudflare-dns_conf.ps1"</span>
+} <span class="kw">catch</span> {
+    <span class="func">Write-Error</span> <span class="str">"Missing or invalid config file"</span>
+    <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="cmt"># Validate TTL</span>
+<span class="kw">if</span> ((<span class="var">$ttl</span> -lt <span class="num">120</span>) -or ((<span class="var">$ttl</span> -gt <span class="num">7200</span>) -and (<span class="var">$ttl</span> -ne <span class="num">1</span>))) {
+    <span class="func">Write-Error</span> <span class="str">'ttl must be 120-7200, or 1 for Auto'</span>
+    <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="cmt"># Validate proxied flag</span>
+<span class="kw">if</span> (!([string]<span class="var">$proxied</span>) -or (<span class="var">$proxied</span>.GetType().Name.Trim() -ne <span class="str">'Boolean'</span>)) {
+    <span class="func">Write-Error</span> <span class="str">'proxied must be $true or $false'</span>
+    <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="cmt"># Validate what_ip</span>
+<span class="kw">if</span> ((<span class="var">$what_ip</span> -ne <span class="str">'external'</span>) -and (<span class="var">$what_ip</span> -ne <span class="str">'internal'</span>)) {
+    <span class="func">Write-Error</span> <span class="str">'what_ip must be "external" or "internal"'</span>
+    <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="kw">if</span> ((<span class="var">$what_ip</span> -eq <span class="str">'internal'</span>) -and <span class="var">$proxied</span>) {
+    <span class="func">Write-Error</span> <span class="str">'Internal IP cannot be proxied'</span>
+    <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="cmt"># Test if a string is a valid IPv6 address</span>
+<span class="kw">function</span> <span class="func">Test-IPv6Address</span> {
+    <span class="kw">param</span>([string]<span class="var">$Address</span>)
+    <span class="var">$out</span> = [System.Net.IPAddress]::None
+    <span class="kw">if</span> (-not [System.Net.IPAddress]::TryParse(<span class="var">$Address</span>, [ref]<span class="var">$out</span>)) { <span class="kw">return</span> <span class="num">$false</span> }
+    <span class="kw">return</span> (<span class="var">$out</span>.AddressFamily -eq [System.Net.Sockets.AddressFamily]::InterNetworkV6)
+}
+
+<span class="cmt"># Get external IPv6 from public providers</span>
+<span class="kw">function</span> <span class="func">Get-ExternalIPv6</span> {
+    <span class="var">$ipv6Providers</span> = @(
+        <span class="str">'https://api64.ipify.org'</span>,
+        <span class="str">'https://ifconfig.co/ip'</span>,
+        <span class="str">'https://icanhazip.com'</span>
+    )
+    <span class="kw">foreach</span> (<span class="var">$provider</span> <span class="kw">in</span> <span class="var">$ipv6Providers</span>) {
+        <span class="kw">try</span> {
+            <span class="var">$candidate</span> = (<span class="func">Invoke-RestMethod</span> -Uri <span class="var">$provider</span> -TimeoutSec <span class="num">10</span> -Headers @{ Accept = <span class="str">'text/plain'</span> }).Trim()
+            <span class="kw">if</span> (<span class="func">Test-IPv6Address</span> <span class="var">$candidate</span>) { <span class="kw">return</span> <span class="var">$candidate</span> }
+        } <span class="kw">catch</span> { <span class="kw">continue</span> }
+    }
+    <span class="kw">return</span> <span class="num">$null</span>
+}
+
+<span class="cmt"># Get internal IPv6 via routing table</span>
+<span class="kw">function</span> <span class="func">Get-InternalIPv6</span> {
+    <span class="kw">try</span> {
+        <span class="var">$route</span> = <span class="func">Find-NetRoute</span> -RemoteIPAddress <span class="str">'2606:4700:4700::1111'</span> -ErrorAction Stop |
+            <span class="func">Sort-Object</span> RouteMetric, InterfaceMetric | <span class="func">Select-Object</span> -First <span class="num">1</span>
+        <span class="var">$ip</span> = <span class="func">Get-NetIPAddress</span> -InterfaceIndex <span class="var">$route</span>.InterfaceIndex -AddressFamily IPv6 |
+            <span class="func">Where-Object</span> {
+                <span class="var">$_</span>.IPAddress -notlike <span class="str">'fe80:*'</span> -and
+                <span class="var">$_</span>.IPAddress -ne <span class="str">'::1'</span> -and
+                <span class="var">$_</span>.PrefixOrigin -ne <span class="str">'WellKnown'</span>
+            } |
+            <span class="func">Sort-Object</span> SkipAsSource, PrefixOrigin |
+            <span class="func">Select-Object</span> -First <span class="num">1</span> -ExpandProperty IPAddress
+        <span class="kw">if</span> (<span class="func">Test-IPv6Address</span> <span class="var">$ip</span>) { <span class="kw">return</span> <span class="var">$ip</span> }
+    } <span class="kw">catch</span> { <span class="kw">return</span> <span class="num">$null</span> }
+    <span class="kw">return</span> <span class="num">$null</span>
+}
+
+<span class="cmt"># Resolve current IP</span>
+<span class="kw">if</span> (<span class="var">$what_ip</span> -eq <span class="str">'external'</span>) {
+    <span class="var">$ip</span> = <span class="func">Get-ExternalIPv6</span>
+    <span class="kw">if</span> (-not <span class="var">$ip</span>) { <span class="func">Write-Error</span> <span class="str">'Could not determine external IPv6'</span>; <span class="kw">exit</span> <span class="num">1</span> }
+} <span class="kw">else</span> {
+    <span class="var">$ip</span> = <span class="func">Get-InternalIPv6</span>
+    <span class="kw">if</span> (-not <span class="var">$ip</span>) { <span class="func">Write-Error</span> <span class="str">'Could not determine internal IPv6'</span>; <span class="kw">exit</span> <span class="num">1</span> }
+}
+
+<span class="var">$headers</span> = @{
+    Authorization = <span class="str">"Bearer $cloudflare_zone_api_token"</span>
+    <span class="str">'Content-Type'</span> = <span class="str">'application/json'</span>
+}
+
+<span class="cmt"># Query Cloudflare for current AAAA record</span>
+<span class="kw">try</span> {
+    <span class="var">$response</span> = <span class="func">Invoke-RestMethod</span> `
+        -Uri <span class="str">"https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records?type=AAAA&name=$dns_record"</span> `
+        -Headers <span class="var">$headers</span> -Method GET
+} <span class="kw">catch</span> { <span class="func">Write-Error</span> <span class="str">'Failed to query Cloudflare'</span>; <span class="kw">exit</span> <span class="num">1</span> }
+
+<span class="kw">if</span> (<span class="var">$response</span>.success -ne <span class="num">$true</span>) { <span class="func">Write-Error</span> <span class="str">'Cloudflare API error'</span>; <span class="kw">exit</span> <span class="num">1</span> }
+<span class="kw">if</span> (-not <span class="var">$response</span>.result -or <span class="var">$response</span>.result.Count -eq <span class="num">0</span>) {
+    <span class="func">Write-Error</span> <span class="str">"No AAAA record found for $dns_record"</span>; <span class="kw">exit</span> <span class="num">1</span>
+}
+
+<span class="var">$record</span>        = <span class="var">$response</span>.result | <span class="func">Select-Object</span> -First <span class="num">1</span>
+<span class="var">$dns_record_id</span> = <span class="var">$record</span>.id.Trim()
+<span class="var">$dns_record_ip</span> = <span class="var">$record</span>.content.Trim()
+<span class="var">$is_proxied</span>    = <span class="var">$record</span>.proxied
+
+<span class="cmt"># Skip update if nothing changed</span>
+<span class="kw">if</span> ((<span class="func">Test-IPv6Address</span> <span class="var">$dns_record_ip</span>) -and (<span class="var">$dns_record_ip</span> -eq <span class="var">$ip</span>) -and (<span class="var">$is_proxied</span> -eq <span class="var">$proxied</span>)) {
+    <span class="func">Write-Output</span> <span class="str">"No update needed. $dns_record already points to $ip"</span>
+    <span class="kw">exit</span> <span class="num">0</span>
+}
+
+<span class="cmt"># Build and send update</span>
+<span class="var">$body</span> = @{
+    type    = <span class="str">'AAAA'</span>
+    name    = <span class="var">$dns_record</span>
+    content = <span class="var">$ip</span>
+    ttl     = <span class="var">$ttl</span>
+    proxied = <span class="var">$proxied</span>
+} | <span class="func">ConvertTo-Json</span> -Depth <span class="num">5</span>
+
+<span class="kw">try</span> {
+    <span class="var">$updateResponse</span> = <span class="func">Invoke-RestMethod</span> `
+        -Uri <span class="str">"https://api.cloudflare.com/client/v4/zones/$zoneid/dns_records/$dns_record_id"</span> `
+        -Headers <span class="var">$headers</span> -Method PUT -Body <span class="var">$body</span>
+} <span class="kw">catch</span> { <span class="func">Write-Error</span> <span class="str">'Failed to update AAAA record'</span>; <span class="kw">exit</span> <span class="num">1</span> }
+
+<span class="kw">if</span> (<span class="var">$updateResponse</span>.success -eq <span class="num">$true</span>) {
+    <span class="func">Write-Output</span> <span class="str">"Updated $dns_record AAAA to $ip"</span>
+    <span class="kw">exit</span> <span class="num">0</span>
+}
+
+<span class="func">Write-Error</span> <span class="str">'Cloudflare update failed'</span>
+<span class="kw">exit</span> <span class="num">1</span></pre>
+  </div>
+</section>
+
+<!-- ── NSSM ── -->
+<section id="nssm">
+  <div class="section-label">SECTION 05 // WINDOWS SERVICE INSTALLATION</div>
+  <h2><span class="step-num">05</span> Install as a Windows Service (NSSM)</h2>
+
+  <p>
+    NSSM (Non-Sucking Service Manager) wraps PowerShell into a proper Windows service so the script
+    runs on every boot — before you even log in. Because you'd forget to run it manually.
+    We all would. That's why services exist.
+  </p>
+
+  <div class="callout warn">
+    <span class="callout-icon">▲</span>
+    Run PowerShell <strong>as Administrator</strong> for all NSSM commands. Not regular PowerShell.
+    The one with the little shield icon. Yes, that one. Right-click → Run as Administrator.
+  </div>
+
+  <p>Paste everything at once if you're feeling reckless and/or caffeinated:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <span>PowerShell (Administrator) // FULL INSTALL</span>
+    </div>
+    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+    <pre id="code-nssm-all">& <span class="str">"C:\tools\nssm.exe"</span> install CloudflareIpv6DDNS <span class="str">"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"</span>
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS AppDirectory    <span class="str">"C:\Potatosips_DDNS_Cloudflare"</span>
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS AppParameters   <span class="str">'-ExecutionPolicy Bypass -File "C:\Potatosips_DDNS_Cloudflare\potatosips-update-cloudflare-dns-ipv6-only.ps1"'</span>
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS DisplayName    <span class="str">"Cloudflare IPv6 DDNS"</span>
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS Description    <span class="str">"Updates Cloudflare AAAA record with current IPv6"</span>
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS Start          SERVICE_AUTO_START
+& <span class="str">"C:\tools\nssm.exe"</span> set CloudflareIpv6DDNS AppExit        Default Exit
+& <span class="str">"C:\tools\nssm.exe"</span> dump CloudflareIpv6DDNS
+& <span class="str">"C:\tools\nssm.exe"</span> start CloudflareIpv6DDNS</pre>
+  </div>
+</section>
+
+<!-- ── VERIFY ── -->
+<section id="verify">
+  <div class="section-label">SECTION 06 // SERVICE MANAGEMENT</div>
+  <h2><span class="step-num">06</span> Manage the Service Later</h2>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><span></span><span></span><span></span></div>
+      <span>PowerShell // SERVICE MANAGEMENT</span>
+    </div>
+    <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+    <pre id="code-manage"><span class="cmt"># Stop the service</span>
+& <span class="str">"C:\tools\nssm.exe"</span> stop CloudflareIpv6DDNS
+
+<span class="cmt"># Restart the service</span>
+& <span class="str">"C:\tools\nssm.exe"</span> restart CloudflareIpv6DDNS
+
+<span class="cmt"># Remove the service entirely (nuclear option)</span>
+& <span class="str">"C:\tools\nssm.exe"</span> remove CloudflareIpv6DDNS confirm</pre>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how-it-works">
+  <div class="section-label">SECTION 07 // INTERNALS</div>
+  <h2><span class="step-num">07</span> How It Works</h2>
+
+  <p>The script logic runs as follows every time the service starts (i.e., on every boot):</p>
+
+  <ol class="steps">
+    <li>Loads config from <code>_conf.ps1</code> via dot-sourcing (same scope, so variables are shared)</li>
+    <li>Validates all config values — wrong TTL, wrong proxied type, invalid what_ip → hard exit</li>
+    <li>Detects your IPv6: tries <code>api64.ipify.org</code>, <code>ifconfig.co</code>, <code>icanhazip.com</code> in order, validates each is actually an IPv6 (not IPv4 sneaking through)</li>
+    <li>Calls Cloudflare API to get the current AAAA record content and its record ID</li>
+    <li>Compares current IP vs DNS IP — if they match and proxy state matches → exits cleanly, no API call</li>
+    <li>If different → sends a PUT request to update the record with the new IPv6, TTL, and proxied flag</li>
+    <li>Logs success or failure via <code>Write-Output</code> / <code>Write-Error</code> (visible in NSSM logs)</li>
+  </ol>
+
+  <div class="callout">
+    <span class="callout-icon">⬡</span>
+    The script only fires on service start. It doesn't loop or poll continuously. To run it periodically
+    (e.g., every 5 minutes), wrap it in a Task Scheduler trigger or modify the service with
+    <code>AppThrottle</code> / restart settings in NSSM. For most home setups, once-per-boot is enough.
+  </div>
+
+  <div class="callout dead" style="margin-top:20px;">
+    <span class="callout-icon">☠</span>
+    If your ISP changes your IPv6 mid-session without rebooting your PC — this won't catch it until next
+    restart. That's a known limitation. Your ISP is the villain here, not the script.
+    Write them an angry letter. They won't read it, but it'll make you feel better.
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div>POTATOSIPS // CLOUDFLARE IPv6 DDNS // WIN11 EDITION</div>
+  <div style="margin-top:8px; color: var(--green);">
+    <span class="blink">■</span> SERVICE ONLINE // AAAA RECORD MAINTAINED // NO HUMANS HARMED
+  </div>
+  <div style="margin-top:12px; color: var(--dim); font-size:0.6rem;">
+    Your IPv6 address is just your IPv4 address but longer and with more colons. You're welcome.
+  </div>
+</footer>
+
+<script>
+  // COPY BUTTON
+  function copyCode(btn) {
+    const pre = btn.parentElement.querySelector('pre');
+    const text = pre.innerText || pre.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      btn.textContent = 'FAILED';
+      setTimeout(() => { btn.textContent = 'COPY'; }, 2000);
+    });
+  }
+
+  // STAGGERED SECTION ANIMATIONS
+  const sections = document.querySelectorAll('section');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  sections.forEach((s, i) => {
+    s.style.opacity = '0';
+    s.style.transform = 'translateY(24px)';
+    s.style.transition = `opacity 0.5s ease ${i * 0.05}s, transform 0.5s ease ${i * 0.05}s`;
+    observer.observe(s);
+  });
+
+
+</script>
+</body>
+</html>
