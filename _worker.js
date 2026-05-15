@@ -5,7 +5,8 @@ export default {
 
     const routes = {
       "batt-health-mi11x.potatosips.oporajita.win": "/battery-health-check-Mi11x",
-      "remote-wol-guide.potatosips.oporajita.win": "/Remote-wol-guide"
+      "remote-wol-guide.potatosips.oporajita.win": "/Remote-wol-guide",
+      "redbot-guide.potatosips.oporajita.win": "/redbot-guide"
     };
 
     const targetPath = routes[host];
