@@ -8,5 +8,47 @@
     "binding": "ASSETS",
     "run_worker_first": true,
     "html_handling": "none"
-  }
+  },
+  "routes": [
+    {
+      "pattern": "dnssec-dot-over-stubby.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "samba-on-arch.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "openwrt-mesh-setup.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "cloudflare-ipv6-ddns.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "arch-on-azure.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "remote-wol-guide.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "arch-baremetal-install.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "filebrowser-docker.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "batt-health-mi11x.potatosips.oporajita.win",
+      "custom_domain": true
+    },
+    {
+      "pattern": "redbot-guide.potatosips.oporajita.win",
+      "custom_domain": true
+    }
+  ]
 }
