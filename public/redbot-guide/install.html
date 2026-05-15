@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Installation · potatosips</title>
+  <meta name="description" content="Install Red-DiscordBot on Ubuntu 24.04 LTS.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark">ps</span>
+      <span><strong>potatosips</strong><small>RedBot Guide</small></span>
+    </a>
+    <nav class="desktop-nav"><a class="nav-link " href="/">Home</a><a class="nav-link active" href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a></nav>
+    <div class="top-actions">
+      <button class="search-open" type="button" data-search-open>Search</button>
+      <button class="menu-btn" type="button" data-menu-toggle>Menu</button>
+    </div>
+  </header>
+
+  <div class="mobile-panel" data-mobile-panel>
+    <a class="nav-link " href="/">Home</a><a class="nav-link active" href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a>
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="side-title">Guide</div>
+      <a class="nav-link " href="/">Home</a><a class="nav-link active" href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a>
+      <div class="side-title mt">Cogs</div>
+      <a class="side-link " href="/cogs/welcome.html">Welcome</a><a class="side-link " href="/cogs/roletools.html">RoleTools</a><a class="side-link " href="/cogs/tickets.html">Tickets</a><a class="side-link " href="/cogs/autoroom.html">AutoRoom</a><a class="side-link " href="/cogs/retrigger.html">Retrigger</a><a class="side-link " href="/cogs/snipe.html">Snipe</a><a class="side-link " href="/cogs/extendedmodlog.html">ExtendedModLog</a><a class="side-link " href="/cogs/yalc.html">YALC</a><a class="side-link " href="/cogs/voice-logs.html">Voice Logs</a><a class="side-link " href="/cogs/dashboard.html">Dashboard</a><a class="side-link " href="/cogs/birthday.html">Birthday</a><a class="side-link " href="/cogs/autoreact.html">AutoReact</a>
+    </aside>
+    <section class="content">
+      
+<h1>Installation</h1>
+<p class="lead">Ubuntu 24.04 LTS setup for Red-DiscordBot using Python 3.11, a virtual environment, and systemd.</p>
+
+<section class="notice good">Always keep the official Red documentation open and follow it first: <a href="https://docs.discord.red/en/stable/" target="_blank" rel="noreferrer">docs.discord.red/en/stable</a>. This page is the practical potatosips setup version.</section>
+
+<h2>1. Install Ubuntu packages</h2>
+<p>Recommended base system: <strong>Ubuntu 24.04 LTS</strong>.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">sudo apt update
+sudo apt -y install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt -y install python3.11 python3.11-dev python3.11-venv git openjdk-17-jre-headless build-essential nano</code></pre></div>
+
+<h2>2. Create RedBot virtual environment</h2>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">python3.11 -m venv ~/redenv
+source ~/redenv/bin/activate
+pip install -U pip wheel setuptools
+pip install Red-DiscordBot</code></pre></div>
+
+<h2>3. Create the bot instance</h2>
+<p>Run setup and choose your instance name. In my setup the instance name was also <code>redbot</code>, but yours can be different.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">redbot-setup</code></pre></div>
+
+<h2>4. Start manually once</h2>
+<p>In <code>redbot redbot</code>, the first <code>redbot</code> is the terminal command. The second <code>redbot</code> is the instance name made by <code>redbot-setup</code>. Replace the second one if your instance name is different.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">redbot YOUR_INSTANCE_NAME --owner YOUR_DISCORD_USER_ID --team-members-are-owners</code></pre></div>
+
+<h2>5. systemd service</h2>
+<p>Create a template service so <code>red@YOUR_INSTANCE_NAME</code> starts the matching RedBot instance.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">sudo nano /etc/systemd/system/red@.service</code></pre></div>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-ini">[Unit]
+Description=%i redbot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu
+ExecStart=/home/ubuntu/redenv/bin/python -O -m redbot %i --owner YOUR_DISCORD_USER_ID --team-members-are-owners --no-prompt --rpc
+Restart=on-failure
+RestartSec=20
+
+[Install]
+WantedBy=multi-user.target</code></pre></div>
+
+<h2>6. Enable and start</h2>
+<p>Replace <code>YOUR_INSTANCE_NAME</code> with the instance name you created in <code>redbot-setup</code>.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">sudo systemctl daemon-reload
+sudo systemctl enable red@YOUR_INSTANCE_NAME
+sudo systemctl start red@YOUR_INSTANCE_NAME
+sudo systemctl status red@YOUR_INSTANCE_NAME</code></pre></div>
+
+<h2>7. Check logs</h2>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">sudo journalctl -u red@YOUR_INSTANCE_NAME -n 80 --no-pager</code></pre></div>
+
+    </section>
+  </main>
+
+  <div class="search-modal" data-search-modal aria-hidden="true">
+    <div class="search-box">
+      <div class="search-head">
+        <input id="site-search" type="search" placeholder="Search commands, cogs, errors..." autocomplete="off">
+        <button type="button" data-search-close>Close</button>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Built for potatosips · redbot-guide.potatosips.oporajita.win</span>
+    <span>Prefix used in examples: <code>oa</code></span>
+  </footer>
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>
