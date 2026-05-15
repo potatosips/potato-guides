@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FreeGames · potatosips</title>
-  <meta name="description" content="Auto reactions.">
+  <meta name="description" content="Free game announcement cog setup with GamerPowerAPI and the upstream showsettings fix.">
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
@@ -30,15 +30,16 @@
       <div class="side-title">Guide</div>
       <a class="nav-link " href="/">Home</a><a class="nav-link " href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a>
       <div class="side-title mt">Cogs</div>
-      <a class="side-link " href="/cogs/welcome.html">Welcome</a><a class="side-link " href="/cogs/roletools.html">RoleTools</a><a class="side-link " href="/cogs/tickets.html">Tickets</a><a class="side-link " href="/cogs/autoroom.html">AutoRoom</a><a class="side-link " href="/cogs/retrigger.html">Retrigger</a><a class="side-link " href="/cogs/snipe.html">Snipe</a><a class="side-link " href="/cogs/extendedmodlog.html">ExtendedModLog</a><a class="side-link " href="/cogs/yalc.html">YALC</a><a class="side-link " href="/cogs/voice-logs.html">Voice Logs</a><a class="side-link " href="/cogs/dashboard.html">Dashboard</a><a class="side-link " href="/cogs/birthday.html">Birthday</a><a class="side-link active" href="/cogs/autoreact.html">AutoReact</a>
+      <a class="side-link " href="/cogs/welcome.html">Welcome</a><a class="side-link " href="/cogs/roletools.html">RoleTools</a><a class="side-link " href="/cogs/tickets.html">Tickets</a><a class="side-link " href="/cogs/autoroom.html">AutoRoom</a><a class="side-link " href="/cogs/retrigger.html">Retrigger</a><a class="side-link " href="/cogs/snipe.html">Snipe</a><a class="side-link " href="/cogs/extendedmodlog.html">ExtendedModLog</a><a class="side-link " href="/cogs/yalc.html">YALC</a><a class="side-link " href="/cogs/voice-logs.html">Voice Logs</a><a class="side-link " href="/cogs/dashboard.html">Dashboard</a><a class="side-link " href="/cogs/birthday.html">Birthday</a><a class="side-link " href="/cogs/autoreact.html">AutoReact</a><a class="side-link active" href="/cogs/freegames.html">FreeGames</a>
     </aside>
     <section class="content">
       
+
 <h1>FreeGames</h1>
-<p class="lead">Free game announcement cog setup with GamerPowerAPI, plus the known <code>fgset showsettings</code> crash fix.</p>
+<p class="lead">Free game announcement cog setup with GamerPowerAPI, plus the upstream fix for the old <code>fgset showsettings</code> crash.</p>
 
 <div class="callout">
-  <strong>What this page covers:</strong> configuring GamerPowerAPI, setting the announcement channel, selecting stores, enabling posts, and fixing the <code>TypeError: 'set' object is not subscriptable</code> crash in <code>showsettings</code>.
+  <strong>Status:</strong> the crash was accepted and fixed upstream. The developer changed the store collections to lists before sending them into <code>cf.humanize_list()</code>. Update the cog instead of manually patching it.
 </div>
 
 <h2>Install</h2>
@@ -62,40 +63,50 @@ oa fgset showsettings</code></pre>
   <li><strong>Stores:</strong> selected PC, console, mobile, VR, and DRM-free sources</li>
 </ul>
 
-<h2>Known showsettings crash</h2>
-<p>The setup can work correctly while <code>oa fgset showsettings</code> still crashes. The bug happens when the cog sends a Python <code>set</code> directly into <code>cf.humanize_list()</code>.</p>
+<h2>Old showsettings crash</h2>
+<p>Older versions could crash after stores were configured. The setup itself was valid, but <code>oa fgset showsettings</code> failed because a Python <code>set</code> was passed directly into <code>cf.humanize_list()</code>.</p>
 
 <pre><code>Error in command 'freegamesset showsettings'
 TypeError: 'set' object is not subscriptable</code></pre>
 
 <h2>Root cause</h2>
-<p><code>conf.gamerpower.stores_to_check</code> is stored as a set. Babel list formatting expects an indexable list-like object, so it fails when it tries to access items by index.</p>
+<p><code>conf.gamerpower.stores_to_check</code> was stored as a set. Babel list formatting expects an indexable list-like object, so indexing a set caused the crash.</p>
 
-<h2>Patch</h2>
-<p>Edit the installed cog file that contains the settings display command, usually inside the RedBot venv cog install path:</p>
-<pre><code>nano /path/to/freegames/commands/settings.py</code></pre>
+<h2>Upstream fix</h2>
+<p>The accepted fix converts the store set to a list before formatting it:</p>
+<pre><code>cf.humanize_list(list(conf.gamerpower.stores_to_check))</code></pre>
 
-<p>Change this:</p>
-<pre><code>cf.humanize_list(conf.gamerpower.stores_to_check)</code></pre>
+<p>The same fix was also applied to <code>freestuff.stores_to_check</code>.</p>
 
-<p>To this:</p>
-<pre><code>cf.humanize_list(sorted(conf.gamerpower.stores_to_check))</code></pre>
+<div class="callout">
+  <strong>Note:</strong> the local workaround used <code>sorted(...)</code>. Both <code>list(...)</code> and <code>sorted(...)</code> stop the crash. <code>sorted(...)</code> gives a stable alphabetical order, while <code>list(...)</code> is enough for the upstream fix.
+</div>
 
-<p>Suggested fixed display line:</p>
-<pre><code>f"  - Stores to check: {cf.humanize_list(sorted(conf.gamerpower.stores_to_check)) or 'All of them'}
+<h2>Update your installed cog</h2>
+<p>Since the fix is now upstream, update and reload the cog:</p>
+<pre><code>oa repo update cray-bounty-cogs
+oa cog update
+oa reload freegames</code></pre>
 
-",</code></pre>
+<h2>Verify</h2>
+<pre><code>oa fgset showsettings</code></pre>
 
-<h2>Reload and verify</h2>
-<pre><code>oa reload freegames
-oa fgset showsettings</code></pre>
+<p>If the update is successful, the settings embed should display normally instead of crashing.</p>
+
+<h2>Post-fix result</h2>
+<ul>
+  <li><strong>GamerPowerAPI:</strong> On</li>
+  <li><strong>Channel:</strong> your chosen free games text channel</li>
+  <li><strong>FreeStuffAPI:</strong> Off unless you enable it</li>
+  <li><strong>Stores list:</strong> displays successfully</li>
+</ul>
 
 <h2>Notes</h2>
 <ul>
   <li>This is not an EmbedUtils issue.</li>
   <li>This is not caused by missing Discord Embed Links permission.</li>
-  <li>GamerPowerAPI configuration can still be valid; the crash is limited to the settings display command.</li>
-  <li>Unrelated logs from Birthday or YALC do not affect this issue.</li>
+  <li>GamerPowerAPI configuration can still be valid; the crash was limited to the settings display command.</li>
+  <li>Unrelated Birthday or YALC logs do not affect this issue.</li>
 </ul>
 
     </section>
