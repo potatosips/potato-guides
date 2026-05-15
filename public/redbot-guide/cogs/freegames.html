@@ -35,78 +35,53 @@
     <section class="content">
       
 
+
 <h1>FreeGames</h1>
-<p class="lead">Free game announcement cog setup with GamerPowerAPI, plus the upstream fix for the old <code>fgset showsettings</code> crash.</p>
+<p class="lead">Free game announcement setup for Red-DiscordBot using <code>cray-bounty-cogs</code>, GamerPowerAPI, and a dedicated announcement channel.</p>
 
 <div class="callout">
-  <strong>Status:</strong> the crash was accepted and fixed upstream. The developer changed the store collections to lists before sending them into <code>cf.humanize_list()</code>. Update the cog instead of manually patching it.
+  <strong>Repository:</strong> <code>https://github.com/i-am-zaidali/bounty-cogs</code>
 </div>
 
 <h2>Install</h2>
-<p>Use the repo that provides <code>freegames</code>. Replace <code>CRAY_BOUNTY_REPO_URL</code> with the actual cray-bounty-cogs repository URL you use.</p>
-<pre><code>oa repo add cray-bounty-cogs CRAY_BOUNTY_REPO_URL
+<pre><code>oa repo add cray-bounty-cogs https://github.com/i-am-zaidali/bounty-cogs
 oa cog install cray-bounty-cogs freegames
 oa load freegames</code></pre>
 
 <h2>GamerPowerAPI setup</h2>
-<p>Replace <code>#free-games</code> with your own free games announcement text channel.</p>
+<p>Replace <code>#free-games</code> with your own free-games announcement text channel.</p>
 <pre><code>oa fgset gpapi channel #free-games
 oa fgset gpapi stores steam epic-games-store ubisoft gog itchio ps4 ps5 xbox-one xbox-series-xs switch android ios vr battlenet origin drm-free xbox-360
 oa fgset gpapi toggle
 oa fgset showsettings</code></pre>
 
+<h2>Update the cog</h2>
+<p>Use this whenever the repository receives updates.</p>
+<pre><code>oa repo update cray-bounty-cogs
+oa cog update
+oa reload freegames
+oa fgset showsettings</code></pre>
+
 <h2>Expected settings</h2>
 <ul>
   <li><strong>GamerPowerAPI:</strong> On</li>
-  <li><strong>Channel:</strong> your chosen free games text channel</li>
+  <li><strong>Channel:</strong> your chosen free-games announcement channel</li>
   <li><strong>FreeStuffAPI:</strong> Off unless you enable it</li>
   <li><strong>Stores:</strong> selected PC, console, mobile, VR, and DRM-free sources</li>
 </ul>
 
-<h2>Old showsettings crash</h2>
-<p>Older versions could crash after stores were configured. The setup itself was valid, but <code>oa fgset showsettings</code> failed because a Python <code>set</code> was passed directly into <code>cf.humanize_list()</code>.</p>
-
-<pre><code>Error in command 'freegamesset showsettings'
-TypeError: 'set' object is not subscriptable</code></pre>
-
-<h2>Root cause</h2>
-<p><code>conf.gamerpower.stores_to_check</code> was stored as a set. Babel list formatting expects an indexable list-like object, so indexing a set caused the crash.</p>
-
-<h2>Upstream fix</h2>
-<p>The accepted fix converts the store set to a list before formatting it:</p>
-<pre><code>cf.humanize_list(list(conf.gamerpower.stores_to_check))</code></pre>
-
-<p>The same fix was also applied to <code>freestuff.stores_to_check</code>.</p>
-
-<div class="callout">
-  <strong>Note:</strong> the local workaround used <code>sorted(...)</code>. Both <code>list(...)</code> and <code>sorted(...)</code> stop the crash. <code>sorted(...)</code> gives a stable alphabetical order, while <code>list(...)</code> is enough for the upstream fix.
-</div>
-
-<h2>Update your installed cog</h2>
-<p>Since the fix is now upstream, update and reload the cog:</p>
-<pre><code>oa repo update cray-bounty-cogs
-oa cog update
+<h2>Useful commands</h2>
+<pre><code>oa fgset showsettings
+oa fgset gpapi toggle
+oa fgset gpapi channel #free-games
+oa fgset gpapi stores steam epic-games-store ubisoft gog itchio ps4 ps5 xbox-one xbox-series-xs switch android ios vr battlenet origin drm-free xbox-360
 oa reload freegames</code></pre>
-
-<h2>Verify</h2>
-<pre><code>oa fgset showsettings</code></pre>
-
-<p>If the update is successful, the settings embed should display normally instead of crashing.</p>
-
-<h2>Post-fix result</h2>
-<ul>
-  <li><strong>GamerPowerAPI:</strong> On</li>
-  <li><strong>Channel:</strong> your chosen free games text channel</li>
-  <li><strong>FreeStuffAPI:</strong> Off unless you enable it</li>
-  <li><strong>Stores list:</strong> displays successfully</li>
-</ul>
 
 <h2>Notes</h2>
 <ul>
-  <li>This is not an EmbedUtils issue.</li>
-  <li>This is not caused by missing Discord Embed Links permission.</li>
-  <li>GamerPowerAPI configuration can still be valid; the crash was limited to the settings display command.</li>
-  <li>Unrelated Birthday or YALC logs do not affect this issue.</li>
+  <li>Use a public text channel where the bot can send messages and embeds.</li>
+  <li>Keep store names lowercase and space-separated.</li>
+  <li>Reload the cog after updating it.</li>
 </ul>
 
     </section>
