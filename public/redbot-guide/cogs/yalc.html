@@ -35,26 +35,44 @@
     <section class="content">
       
 <h1>YALC</h1>
-<p class="lead">Final preferred full logging cog after setup worked.</p>
+<p class="lead">Yet Another Logging Cog. Current recommended setup: keep YALC loaded, but enable only voice state logging.</p>
 
-<section class="notice good">For voice join/leave logs, set <code>voice_state_update</code> to your chosen voice log text channel.</section>
+<section class="notice good">Final clean state: <code>Enabled events: 1</code>, <code>voice_state_update</code> points to your voice log text channel, and validation shows 0 issues.</section>
 
+<h2>Install</h2>
 <div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa repo add taakoscogs https://github.com/TaakoOfficial/TaakosCogs
 oa cog install taakoscogs YALC
-oa load YALC
-oa yalc setup CONFIRM
-oa yalc setchannel voice_state_update VOICE_LOG_TEXT_CHANNEL_ID</code></pre></div>
+oa load YALC</code></pre></div>
 
-<h2>Useful commands</h2>
-<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa yalc settings
-oa yalc enable
-oa yalc disable &lt;event_type&gt;
-oa yalc setchannel &lt;event_type_or_all&gt; [channel]
+<h2>Initial setup</h2>
+<p>This creates the YALC Logs category and all default log channels. Use it once for a full setup.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa yalc setup CONFIRM</code></pre></div>
+
+<h2>Keep only voice join/leave logs</h2>
+<p>If full setup enabled too many logs, disable everything first, then enable only voice state logging.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa yalc bulk_disable all
+oa yalc enable voice_state_update
+oa yalc setchannel voice_state_update VOICE_LOG_TEXT_CHANNEL_ID
 oa yalc validate
+oa yalc settings</code></pre></div>
+
+<section class="notice">Use the text channel ID where you want voice join, leave, move, mute, deafen, stream, camera, and related voice state logs to appear.</section>
+
+<h2>Do not bulk-enable voice unless needed</h2>
+<p><code>voice_state_update</code> is enough for normal voice join/leave logging. Only use bulk voice logging if you want every voice-related YALC event.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash"># Optional only if you want every voice category event
+oa yalc bulk_enable voice</code></pre></div>
+
+<h2>Validation notes</h2>
+<article class="card"><h3>0 issues</h3><div><p>If <code>oa yalc validate</code> says found 0 issues, the setup is good.</p></div></article>
+<article class="card"><h3>Warnings are okay</h3><div><p>Warnings like disabled events still having assigned channels are not a problem. Disabled events will not log anything unless enabled again.</p></div></article>
+
+<h2>Diagnostics</h2>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa yalc test
 oa yalc dashboard</code></pre></div>
 
-<h2>Pause YALC</h2>
-<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa unload YALC</code></pre></div>
+<h2>Avoid reset</h2>
+<section class="notice warn">Do not run <code>oa yalc reset</code> unless you want to wipe YALC channel mappings and settings.</section>
 
     </section>
   </main>

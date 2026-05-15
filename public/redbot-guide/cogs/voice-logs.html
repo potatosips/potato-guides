@@ -35,28 +35,38 @@
     <section class="content">
       
 <h1>Voice Logs</h1>
-<p class="lead">Voice join/leave logs using YALC first, with ExtendedModLog as the fallback.</p>
+<p class="lead">Preferred setup: YALC only logging <code>voice_state_update</code> to your chosen voice log text channel.</p>
 
-<section class="notice good">Preferred command: <code>oa yalc setchannel voice_state_update VOICE_LOG_TEXT_CHANNEL_ID</code></section>
+<section class="notice good">Use YALC for final setup. ExtendedModLog is only a fallback.</section>
 
-<h2>Option A: YALC full logging</h2>
+<h2>Preferred: YALC voice-only setup</h2>
 <div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa repo add taakoscogs https://github.com/TaakoOfficial/TaakosCogs
 oa cog install taakoscogs YALC
 oa load YALC
 oa yalc setup CONFIRM
-oa yalc setchannel voice_state_update VOICE_LOG_TEXT_CHANNEL_ID</code></pre></div>
+oa yalc bulk_disable all
+oa yalc enable voice_state_update
+oa yalc setchannel voice_state_update VOICE_LOG_TEXT_CHANNEL_ID
+oa yalc validate
+oa yalc settings</code></pre></div>
 
-<h2>Option B: ExtendedModLog fallback</h2>
+<h2>If ExtendedModLog was already active</h2>
+<p>Pause the old voice logging before using YALC, otherwise you may get duplicate voice logs.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa modlog toggle false voice_change</code></pre></div>
+
+<h2>Expected result</h2>
+<article class="card"><h3>Enabled events</h3><div><p><code>1</code></p></div></article>
+<article class="card"><h3>Enabled event</h3><div><p><code>voice_state_update</code></p></div></article>
+<article class="card"><h3>Log channel</h3><div><p>Your selected voice log text channel.</p></div></article>
+<article class="card"><h3>Validation</h3><div><p><code>Found 0 issues</code></p></div></article>
+
+<h2>Fallback: ExtendedModLog</h2>
 <div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa cog install trusty-cogs extendedmodlog
 oa load extendedmodlog
 oa modlogset modlog MODLOG_TEXT_CHANNEL_ID
 oa modlog channel VOICE_LOG_TEXT_CHANNEL_ID voice_change
 oa modlog toggle true voice_change
 oa modlog embeds true voice_change</code></pre></div>
-
-<h2>Expected output</h2>
-<article class="card"><h3>Voice join</h3><div><p><code>@user has joined Voice Channel</code></p></div></article>
-<article class="card"><h3>Voice leave</h3><div><p><code>@user has left Voice Channel</code></p></div></article>
 
     </section>
   </main>
