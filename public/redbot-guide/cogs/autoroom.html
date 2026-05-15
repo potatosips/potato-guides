@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoRoom · potatosips</title>
+  <meta name="description" content="Dynamic voice channels from YEEEEEET.">
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-mark">ps</span>
+      <span><strong>potatosips</strong><small>RedBot Guide</small></span>
+    </a>
+    <nav class="desktop-nav"><a class="nav-link " href="/">Home</a><a class="nav-link " href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/dashboard.html">Dashboard</a><a class="nav-link " href="/voice-logs.html">Voice Logs</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/cogs/">Cogs</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a></nav>
+    <div class="top-actions">
+      <button class="search-open" type="button" data-search-open>Search</button>
+      <button class="menu-btn" type="button" data-menu-toggle>Menu</button>
+    </div>
+  </header>
+
+  <div class="mobile-panel" data-mobile-panel>
+    <a class="nav-link " href="/">Home</a><a class="nav-link " href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/dashboard.html">Dashboard</a><a class="nav-link " href="/voice-logs.html">Voice Logs</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/cogs/">Cogs</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a>
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="side-title">Guide</div>
+      <a class="nav-link " href="/">Home</a><a class="nav-link " href="/install.html">Install</a><a class="nav-link " href="/core-setup.html">Core Setup</a><a class="nav-link " href="/dashboard.html">Dashboard</a><a class="nav-link " href="/voice-logs.html">Voice Logs</a><a class="nav-link " href="/customization.html">Customization</a><a class="nav-link " href="/cogs/">Cogs</a><a class="nav-link " href="/troubleshooting.html">Troubleshooting</a>
+      <div class="side-title mt">Cog pages</div>
+      <a class="side-link" href="/cogs/welcome.html">Welcome</a><a class="side-link" href="/cogs/roletools.html">RoleTools</a><a class="side-link" href="/cogs/tickets.html">Tickets</a><a class="side-link" href="/cogs/autoroom.html">AutoRoom</a><a class="side-link" href="/cogs/retrigger.html">Retrigger</a><a class="side-link" href="/cogs/snipe.html">Snipe</a><a class="side-link" href="/cogs/extendedmodlog.html">ExtendedModLog</a><a class="side-link" href="/cogs/yalc.html">YALC</a><a class="side-link" href="/cogs/birthday.html">Birthday</a><a class="side-link" href="/cogs/autoreact.html">AutoReact</a>
+    </aside>
+    <section class="content">
+      
+<h1>AutoRoom</h1><p class="lead">Joining <code>YEEEEEET</code> creates a temporary voice room and moves the user.</p>
+<div class="code-wrap"><button class="copy-btn" type="button">Copy</button><pre><code class="language-bash">oa repo add pcxcogs https://github.com/PhasecoreX/PCXCogs
+oa cog install pcxcogs autoroom
+oa load autoroom
+oa autoroomset create YEEEEEET CHAT_CATEGORY_ID</code></pre></div>
+<h2>Wizard choices used</h2><ul><li>Type: <code>public</code></li><li>Name: <code>game</code> or <code>username</code></li></ul>
+
+    </section>
+  </main>
+
+  <div class="search-modal" data-search-modal aria-hidden="true">
+    <div class="search-box">
+      <div class="search-head">
+        <input id="site-search" type="search" placeholder="Search commands, cogs, errors..." autocomplete="off">
+        <button type="button" data-search-close>Close</button>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <span>Built for potatosips · redbot-guide.potatosips.oporajita.win</span>
+    <span>Prefix used in examples: <code>oa</code></span>
+  </footer>
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

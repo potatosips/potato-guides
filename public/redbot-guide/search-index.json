@@ -1,0 +1,110 @@
+[
+  {
+    "title": "Home",
+    "url": "/",
+    "tags": "index",
+    "text": "Home · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Red-DiscordBot setup archive Build a fully featured Discord server bot. A practical guide based on the potatosips RedBot setup: welcome messages, auto roles, tickets, dynamic voice rooms, logging, dashboard, filters, birthdays, and more. Start setup Browse cogs 10+ Cog pages Copy Command blocks Search Across pages Caddy Dashboard proxy Recommended flow Install RedBot and systemd. Configure core roles and modlog. Add feature cogs one by one. Set up Dashboard with a separate venv. Route the guide with Cloudflare Pages. Cloudflare route Copy \"redbot-guide.potatosips.oporajita.win\": \"/redbot-guide\", Moderation Warnings, mutes, filters, tickets, modlog, snipe, and YALC logging. Community Welcome GIFs, birthdays, auto roles, dynamic voice rooms, and AutoReact. Operations systemd services, sep"
+  },
+  {
+    "title": "Installation",
+    "url": "/install.html",
+    "tags": "install",
+    "text": "Installation · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Installation Base RedBot setup on Ubuntu with a virtual environment and systemd. 1. Create Python venv Copy python3 -m venv ~/redenv source ~/redenv/bin/activate pip install -U pip wheel setuptools pip install Red-DiscordBot 2. Create instance Copy redbot-setup redbot redbot --owner YOUR_USER_ID --team-members-are-owners 3. systemd service Copy [Unit] Description=%i redbot After=network-online.target Wants=network-online.target [Service] User=ubuntu Group=ubuntu WorkingDirectory=/home/ubuntu ExecStart=/home/ubuntu/redenv/bin/python -O -m redbot redbot --owner YOUR_USER_ID --team-members-are-owners --no-prompt --rpc Restart=on-failure RestartSec=20 [Install] WantedBy=multi-user.target Copy sudo systemctl daemon-reload sudo systemctl enable red@redbot sudo systemctl start red@redb"
+  },
+  {
+    "title": "Core Setup",
+    "url": "/core-setup.html",
+    "tags": "core-setup",
+    "text": "Core Setup · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Core Setup Set prefix, roles, modlog, and load useful built-in cogs. Prefix used Copy oa help Modlog channel In this setup, normal modlogs use channel ID 1139558361143193731 . Copy oa modlogset modlog 1139558361143193731 Load useful core cogs Copy oa load admin mod modlog mutes warnings cleanup filter permissions reports general economy trivia downloader customcom audio image streams Useful server settings Copy oa set usebuttons True oa helpset usemenus buttons oa set deletedelay 10 oa set colour 0x5865F2 oa set serverfuzzy Recommended repos Copy oa repo add trusty-cogs https://github.com/TrustyJAID/Trusty-cogs oa repo add aaa3a-cogs https://github.com/AAA3A-AAA3A/AAA3A-cogs oa repo add pcxcogs https://github.com/PhasecoreX/PCXCogs oa repo add vex-cogs https://github.com/Vexed01/V"
+  },
+  {
+    "title": "Web Dashboard",
+    "url": "/dashboard.html",
+    "tags": "dashboard",
+    "text": "Web Dashboard · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Web Dashboard Run Dashboard in a separate venv so the RedBot venv stays clean. 1. Create dashboard venv Copy python3 -m venv ~/redbotdashboard source ~/redbotdashboard/bin/activate pip install -U pip wheel setuptools pip install git+https://github.com/AAA3A-AAA3A/Red-Web-Dashboard.git pip install flask-wtf==1.2.1 2. Enable RPC in RedBot systemd Copy ExecStart=/home/ubuntu/redenv/bin/python -O -m redbot redbot --owner YOUR_USER_ID --team-members-are-owners --no-prompt --rpc Copy sudo systemctl daemon-reload sudo systemctl restart red@redbot 3. Configure Dashboard cog Run in DM with the bot after adding the redirect URI in Discord Developer Portal. Copy oa setdashboard redirecturi https://redbot-dashboard.emochii-oracle.oporajita.win/callback oa setdashboard secret YOUR_CLIENT_SE"
+  },
+  {
+    "title": "Voice Logs",
+    "url": "/voice-logs.html",
+    "tags": "voice-logs",
+    "text": "Voice Logs · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Voice Logs Final working setup: YALC routes voice state logs to 1504622317144117278 . ExtendedModLog is the fallback. Final preferred command: oa yalc setchannel voice_state_update 1504622317144117278 Option A: YALC full logging Copy oa repo add taakoscogs https://github.com/TaakoOfficial/TaakosCogs oa cog install taakoscogs YALC oa load YALC oa yalc setup CONFIRM oa yalc setchannel voice_state_update 1504622317144117278 Option B: ExtendedModLog fallback Copy oa cog install trusty-cogs extendedmodlog oa load extendedmodlog oa modlogset modlog 1139558361143193731 oa modlog channel 1504622317144117278 voice_change oa modlog toggle true voice_change oa modlog embeds true voice_change Expected output Voice join @user has joined MOOD Voice leave @user has left MOOD Close Built for pota"
+  },
+  {
+    "title": "Customization",
+    "url": "/customization.html",
+    "tags": "customization",
+    "text": "Customization · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Customization Style welcome messages, support panels, GIF embeds, and trigger responses. Cloudflare Pages route Copy \"redbot-guide.potatosips.oporajita.win\": \"/redbot-guide\", Welcome message style Copy oa welcomeset greeting add 🩸 {0.mention}... another Traveler crosses into **{1.name}**. The Root stirs. The darkness remembers your name, **{0.name}**. You are soul number **{count}** to answer the call — whether you survive... is another matter entirely. *Welcome. If that word still means anything here.* 😶‍🌫️🔥 Welcome GIF Copy oa welcomeset embed toggle oa welcomeset embed image greeting https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExa3RqODkwOGY0cjFrc2ZjbTF6bHY5OTI3dHZwdjFwcG9hdm9pZmxweCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/DvC5ptlsBiNyoN5vqV/giphy.gif Ticket panel"
+  },
+  {
+    "title": "Troubleshooting",
+    "url": "/troubleshooting.html",
+    "tags": "troubleshooting",
+    "text": "Troubleshooting · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Troubleshooting Common errors hit during the setup and the fix. Ticket button creates nothing Check logs. In this setup, wrong welcome placeholders caused errors. Use {owner_mention} , not {ticket_owner.mention} . Copy oa settickets welcomemessage main Hey {owner_mention}! You've opened a ticket. <@977490076953116684> will be with you shortly. Ticket logs posting in panel channel Move logs to the real log channel. Copy oa settickets logschannel main 1139558361143193731 Button says “secondary Open a Ticket” The style must be a number. Copy oa settickets clearmessage MESSAGE_ID oa settickets addbutton MESSAGE_ID main 🎫 2 Open a Ticket Welcome says 2th The cog does not auto-format ordinals. Use “soul number {count}”. YALC voice logs not showing Run full setup, then set the"
+  },
+  {
+    "title": "Cogs Overview",
+    "url": "/cogs/",
+    "tags": "cogs index",
+    "text": "Cogs Overview · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Cogs Overview Each cog has its own page with install, setup, and usage commands. Welcome Open guide → RoleTools Open guide → Tickets Open guide → AutoRoom Open guide → Retrigger Open guide → Snipe Open guide → ExtendedModLog Open guide → YALC Open guide → Birthday Open guide → AutoReact Open guide → Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "Welcome",
+    "url": "/cogs/welcome.html",
+    "tags": "cogs welcome",
+    "text": "Welcome · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Welcome Welcome and goodbye messages using Trusty welcome. Copy oa cog install trusty-cogs welcome oa load welcome Set channel + GIF Copy oa welcomeset greeting channel #welcome oa welcomeset embed toggle oa welcomeset embed image greeting GIF_URL Final Remnant-style message Copy oa welcomeset greeting add 🩸 {0.mention}... another Traveler crosses into **{1.name}**. The Root stirs. The darkness remembers your name, **{0.name}**. You are soul number **{count}** to answer the call — whether you survive... is another matter entirely. *Welcome. If that word still means anything here.* 😶‍🌫️🔥 oa welcomeset greeting toggle oa welcomeset greeting test Variables Variable Meaning {0.mention} New member mention {0.name} New member username {1.name} Server name {count} Member cou"
+  },
+  {
+    "title": "RoleTools",
+    "url": "/cogs/roletools.html",
+    "tags": "cogs roletools",
+    "text": "RoleTools · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact RoleTools Used for autorole. In this setup, new users get Friends . Copy oa cog install trusty-cogs roletools oa load roletools oa roletools autorole true Friends Check help Copy oa help roletools autorole Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "Tickets",
+    "url": "/cogs/tickets.html",
+    "tags": "cogs tickets",
+    "text": "Tickets · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Tickets Support tickets with a bot-authored panel, GIF embed, logs channel, and auto-delete. Copy oa cog install aaa3a-cogs tickets oa load tickets oa settickets enabled main True oa settickets supportroles main Curator oa settickets categoryopen main 1382471886201421825 oa settickets logschannel main 1139558361143193731 oa settickets resetsetting main pingroles oa settickets transcripts main True oa settickets channelname main ticket-{id} oa settickets autodeleteonclose main 0 Welcome message Copy oa settickets welcomemessage main Hey {owner_mention}! You've opened a ticket. <@977490076953116684> will be with you shortly. Don't die waiting. Panel button Copy oa embed 1382469145236340846 blue \"🎫 Support Tickets\" \"Click the button below to open a support ticket! Our team will assi"
+  },
+  {
+    "title": "AutoRoom",
+    "url": "/cogs/autoroom.html",
+    "tags": "cogs autoroom",
+    "text": "AutoRoom · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact AutoRoom Joining YEEEEEET creates a temporary voice room and moves the user. Copy oa repo add pcxcogs https://github.com/PhasecoreX/PCXCogs oa cog install pcxcogs autoroom oa load autoroom oa autoroomset create YEEEEEET CHAT_CATEGORY_ID Wizard choices used Type: public Name: game or username Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "Retrigger",
+    "url": "/cogs/retrigger.html",
+    "tags": "cogs retrigger",
+    "text": "Retrigger · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Retrigger Delete matched messages and respond with a counter. Copy oa cog install trusty-cogs retrigger oa load retrigger Single combined trigger Replace <blocked_terms_regex> with your moderation regex. Copy oa retrigger multi nsfw_filter (?i)\\b(<blocked_terms_regex>)\\b filter: true text: Ayo {author.mention}, that word is not welcome here. Counter: {count}. List triggers Copy oa retrigger list Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "Snipe",
+    "url": "/cogs/snipe.html",
+    "tags": "cogs snipe",
+    "text": "Snipe · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Snipe View deleted and edited messages. Copy oa cog install aaa3a-cogs snipe oa load snipe Usage Copy oa snipe oa snipe bulk oa snipe member @user oa esnipe oa setsnipe ignoredchannels #private-channel Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "ExtendedModLog",
+    "url": "/cogs/extendedmodlog.html",
+    "tags": "cogs extendedmodlog",
+    "text": "ExtendedModLog · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact ExtendedModLog Working fallback for voice join/leave logs. Copy oa cog install trusty-cogs extendedmodlog oa load extendedmodlog oa modlogset modlog 1139558361143193731 oa modlog channel 1504622317144117278 voice_change oa modlog toggle true voice_change oa modlog embeds true voice_change Disable voice logs Copy oa modlog toggle false voice_change Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "YALC",
+    "url": "/cogs/yalc.html",
+    "tags": "cogs yalc",
+    "text": "YALC · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact YALC Final preferred full logging cog after setup worked. Copy oa repo add taakoscogs https://github.com/TaakoOfficial/TaakosCogs oa cog install taakoscogs YALC oa load YALC oa yalc setup CONFIRM oa yalc setchannel voice_state_update 1504622317144117278 Useful commands Copy oa yalc settings oa yalc enable oa yalc disable <event_type> oa yalc setchannel <event_type_or_all> [channel] oa yalc validate oa yalc dashboard Pause YALC Copy oa unload YALC Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "Birthday",
+    "url": "/cogs/birthday.html",
+    "tags": "cogs birthday",
+    "text": "Birthday · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact Birthday Birthday announcements and birthday role. Copy oa repo add vex-cogs https://github.com/Vexed01/Vex-Cogs oa cog install vex-cogs birthday oa load birthday oa bdset interactive oa bdset channel #general oa bdset role BIRTHDAY_ROLE_ID User birthday Copy oa bday set 04/04/2007 Admin force-set Copy oa bdset forceset 685009660293545991 9-24 oa bdset forceset 977490076953116684 12-23 Messages Copy 🎂 {mention} is now {new_age} years old! Happy Birthday! 🎂 {mention}'s birthday is today! Happy Birthday! Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  },
+  {
+    "title": "AutoReact",
+    "url": "/cogs/autoreact.html",
+    "tags": "cogs autoreact",
+    "text": "AutoReact · potatosips ps potatosips RedBot Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Search Menu Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Guide Home Install Core Setup Dashboard Voice Logs Customization Cogs Troubleshooting Cog pages Welcome RoleTools Tickets AutoRoom Retrigger Snipe ExtendedModLog YALC Birthday AutoReact AutoReact Auto-react to matched trigger text. Some unicode emojis may fail as invalid reaction emojis. Copy oa repo add seina-cogs https://github.com/japandotorg/Seina-Cogs oa cog install seina-cogs autoreact oa load autoreact Usage Copy oa ar add <trigger> <emoji> oa ar list oa ar remove <trigger> <emoji> oa ar reset <trigger> If emoji fails Try another native emoji or use a custom Discord emoji format: <:name:id> . Close Built for potatosips · redbot-guide.potatosips.oporajita.win Prefix used in examples: oa"
+  }
+]
