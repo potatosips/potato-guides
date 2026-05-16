@@ -13,7 +13,8 @@ export default {
       "samba-on-arch.potatosips.oporajita.win": "/Samba-on-Arch",
       "arch-on-azure.potatosips.oporajita.win": "/arch-on-azure",
       "filebrowser-docker.potatosips.oporajita.win": "/docker-filebrowser-image",
-      "redbot-guide.potatosips.oporajita.win": "/redbot-guide"
+      "redbot-guide.potatosips.oporajita.win": "/redbot-guide",
+      "rclone-on-docker.potatosips.oporajita.win": "/rclone-on-docker"
     };
 
     const folder = routes[host];
