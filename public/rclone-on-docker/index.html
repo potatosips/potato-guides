@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPS Backup — Automated Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;800&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080b0f;
+    --surface: #0d1117;
+    --border: #1e2a38;
+    --accent: #00d4ff;
+    --accent2: #00ff94;
+    --accent3: #ff6b35;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --code-bg: #0a0f16;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    transition: transform 0.1s ease;
+    mix-blend-mode: screen;
+  }
+  .cursor-trail {
+    width: 32px; height: 32px;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    transition: all 0.15s ease;
+    opacity: 0.4;
+    mix-blend-mode: screen;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+
+  /* Grid background */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  /* Noise overlay */
+  .noise {
+    position: fixed; inset: 0; z-index: 1;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+
+  main { position: relative; z-index: 2; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+  }
+
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 span { color: var(--accent); }
+  .hero h1 .green { color: var(--accent2); }
+
+  .hero-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1rem;
+    color: var(--muted);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-badges {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .badge {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: rgba(255,255,255,0.02);
+    transition: all 0.2s;
+  }
+  .badge:hover { border-color: var(--accent); color: var(--accent); }
+
+  .scroll-hint {
+    position: absolute; bottom: 2rem;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards;
+  }
+  .scroll-hint span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollLine 1.5s ease-in-out infinite;
+  }
+  @keyframes scrollLine {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STEPS ── */
+  .steps-section {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 6rem 2rem;
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 4rem;
+    line-height: 1.1;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.6s ease;
+  }
+  .step.visible { opacity: 1; transform: translateX(0); }
+
+  .step-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    position: relative;
+  }
+  .step-number::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 100%;
+    width: 100%; height: 1px;
+    background: var(--border);
+    transform: translateY(-50%);
+  }
+
+  .step-content h3 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+  .step-content h3 span { color: var(--accent); }
+  .step-content p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 1.2rem;
+  }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  .code-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 1rem;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-lang {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--accent2); border-color: var(--accent2); }
+  .copy-btn.copied { color: var(--accent2); border-color: var(--accent2); }
+
+  pre {
+    padding: 1.2rem;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #a8b8d0;
+  }
+  .kw { color: var(--accent); }
+  .str { color: var(--accent2); }
+  .cm { color: var(--muted); font-style: italic; }
+  .var { color: var(--accent3); }
+  .num { color: #ff9f7e; }
+
+  /* ── ENV FILE DISPLAY ── */
+  .env-grid {
+    display: grid;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .env-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    padding: 0.6rem 1rem;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    align-items: center;
+    transition: border-color 0.2s;
+  }
+  .env-row:hover { border-color: var(--accent); }
+  .env-key { color: var(--accent3); }
+  .env-val { color: var(--accent2); }
+  .env-desc { color: var(--muted); font-size: 0.7rem; grid-column: 1/-1; padding-top: 0.2rem; }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    padding: 1rem 1.2rem;
+    background: rgba(0,212,255,0.04);
+    border-radius: 0 4px 4px 0;
+    margin: 1rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .callout.warn { border-color: var(--accent3); background: rgba(255,107,53,0.04); }
+  .callout.ok { border-color: var(--accent2); background: rgba(0,255,148,0.04); }
+  .callout strong { color: var(--text); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    display: flex; align-items: center; gap: 1rem;
+    margin: 5rem 0 3rem;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--border); }
+  .divider-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem;
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+  .arch-node {
+    padding: 0.7rem 2rem;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+    background: rgba(0,212,255,0.05);
+    text-align: center;
+    white-space: nowrap;
+  }
+  .arch-node.green { border-color: var(--accent2); color: var(--accent2); background: rgba(0,255,148,0.05); }
+  .arch-node.orange { border-color: var(--accent3); color: var(--accent3); background: rgba(255,107,53,0.05); }
+  .arch-arrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.3rem 0;
+    gap: 0.1rem;
+  }
+  .arch-arrow span { color: var(--muted); }
+  .arch-arrow .line { width: 1px; height: 16px; background: var(--border); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    position: fixed; top: 0; left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index: 100;
+    transition: width 0.1s linear;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 1.2rem 2rem;
+    background: rgba(8,11,15,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(30,42,56,0.5);
+  }
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+  .nav-links {
+    display: flex; gap: 2rem;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.1em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ── GLITCH ── */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  }
+  .glitch::before {
+    left: 2px;
+    color: var(--accent3);
+    animation: glitch1 3s infinite;
+  }
+  .glitch::after {
+    left: -2px;
+    color: var(--accent);
+    animation: glitch2 3s infinite;
+  }
+  @keyframes glitch1 {
+    0%, 90%, 100% { clip-path: none; opacity: 0; }
+    92% { clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%); opacity: 0.8; }
+    94% { clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%); opacity: 0.8; }
+    96% { clip-path: none; opacity: 0; }
+  }
+  @keyframes glitch2 {
+    0%, 88%, 100% { clip-path: none; opacity: 0; }
+    90% { clip-path: polygon(0 40%, 100% 40%, 100% 60%, 0 60%); opacity: 0.6; }
+    92% { clip-path: none; opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .step { grid-template-columns: 1fr; }
+    .step-number::after { display: none; }
+    nav .nav-links { display: none; }
+    .env-row { grid-template-columns: 1fr; }
+    .arch-node { font-size: 0.7rem; padding: 0.6rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-trail" id="cursorTrail"></div>
+<div class="grid-bg"></div>
+<div class="noise"></div>
+<div class="progress-bar" id="progressBar"></div>
+
+<nav>
+  <div class="nav-logo">// vps-backup</div>
+  <ul class="nav-links">
+    <li><a href="#overview">overview</a></li>
+    <li><a href="#setup">setup</a></li>
+    <li><a href="#deploy">deploy</a></li>
+    <li><a href="#config">config</a></li>
+  </ul>
+</nav>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">automated backup system · v1.0</div>
+    <h1 class="glitch" data-text="VPS BACKUP">
+      <span>VPS</span><br><span class="green">BACKUP</span>
+    </h1>
+    <p class="hero-sub">Docker-based automated backup to Google Drive using rclone. Zero compression. Scheduled. Self-pruning.</p>
+    <div class="hero-badges">
+      <span class="badge">rclone</span>
+      <span class="badge">docker</span>
+      <span class="badge">google drive</span>
+      <span class="badge">cron</span>
+      <span class="badge">ubuntu/debian</span>
+    </div>
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- OVERVIEW -->
+  <section id="overview" class="steps-section">
+    <div class="section-label">// architecture</div>
+    <h2 class="section-title">How it works</h2>
+
+    <div class="arch-diagram">
+      <div class="arch-node">VPS Host Filesystem ( /:/host:ro )</div>
+      <div class="arch-arrow"><div class="line"></div><span>zip -0 archive</span><div class="line"></div></div>
+      <div class="arch-node orange">Docker Container — rclone-backup</div>
+      <div class="arch-arrow"><div class="line"></div><span>rclone copy</span><div class="line"></div></div>
+      <div class="arch-node green">Google Drive — emochii-oracle-backups/vaultwarden/</div>
+    </div>
+
+    <div class="callout ok">
+      <strong>What makes this setup good:</strong> The entire host filesystem is mounted read-only into the container. You define what to back up in <code>.env</code> — no need to touch the container or rebuild the image.
+    </div>
+  </section>
+
+  <div style="max-width:860px;margin:0 auto;padding:0 2rem">
+    <div class="divider"><div class="divider-line"></div><div class="divider-text">step by step</div><div class="divider-line"></div></div>
+  </div>
+
+  <!-- STEPS -->
+  <section id="setup" class="steps-section">
+    <div class="section-label">// setup</div>
+    <h2 class="section-title">Build the image</h2>
+
+    <!-- Step 1 -->
+    <div class="step">
+      <div class="step-number">01</div>
+      <div class="step-content">
+        <h3>Clone & run <span>build.sh</span></h3>
+        <p>A single script auto-detects your CPU architecture, installs dependencies if missing, generates the Dockerfile inline, and builds the image.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="cm"># Download build script</span>
+<span class="kw">curl</span> -fsSL https://your-repo/build.sh -o build.sh
+<span class="kw">chmod</span> +x build.sh && <span class="kw">sudo</span> ./build.sh</pre>
+        </div>
+        <p>Supported architectures: <code>amd64</code>, <code>arm64</code>, <code>armv7</code>, <code>armv6</code>, <code>386</code></p>
+        <div class="callout">
+          <strong>What it builds:</strong> debian:stable-slim base → installs curl, zip, cron → downloads latest rclone binary for your arch → embeds backup.sh and entrypoint.sh → tags as <code>rclone-backup:latest</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <div class="step-number">02</div>
+      <div class="step-content">
+        <h3>Create <span>Google Cloud</span> credentials</h3>
+        <p>Use your own OAuth credentials to avoid shared rate limits on rclone's default key.</p>
+        <div class="env-grid">
+          <div class="env-row">
+            <span class="env-key">1. console.cloud.google.com</span>
+            <span class="env-val">Create new project</span>
+            <span class="env-desc">Name it anything — e.g. rclone-vps-backup</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">2. APIs & Services</span>
+            <span class="env-val">Enable Google Drive API</span>
+            <span class="env-desc">Search "Google Drive API" → Enable</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">3. OAuth Consent Screen</span>
+            <span class="env-val">External → add your Gmail as test user</span>
+            <span class="env-desc">Required before creating credentials</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">4. Credentials</span>
+            <span class="env-val">Create OAuth 2.0 Client ID → Desktop app</span>
+            <span class="env-desc">Download the JSON — contains client_id and client_secret</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <div class="step-number">03</div>
+      <div class="step-content">
+        <h3>Configure <span>rclone</span></h3>
+        <p>Run rclone config inside a temporary container. Mount the config file (not directory) so credentials persist.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="cm"># Create config file first (not directory)</span>
+<span class="kw">mkdir</span> -p ~/docker/rclone/config
+<span class="kw">touch</span> ~/docker/rclone/config/rclone.conf
+
+<span class="cm"># Run interactive config</span>
+<span class="kw">sudo docker run</span> --rm -it \
+  -v ~/docker/rclone/config/rclone.conf:/config/rclone.conf \
+  --entrypoint rclone \
+  rclone-backup:latest config</pre>
+        </div>
+        <div class="callout warn">
+          <strong>Headless VPS:</strong> When asked "Use web browser?", press <code>n</code>. Copy the authorize command, run it on your local machine, paste the token back.
+        </div>
+        <p>When prompted for remote name use: <code>rclone-google-backup</code></p>
+      </div>
+    </div>
+
+    <div class="divider"><div class="divider-line"></div><div class="divider-text">deploy</div><div class="divider-line"></div></div>
+
+    <!-- Step 4 -->
+    <div id="deploy" class="step">
+      <div class="step-number">04</div>
+      <div class="step-content">
+        <h3>Configure <span>.env</span></h3>
+        <p>All backup behaviour is controlled from a single env file. No need to rebuild the image to change paths or schedule.</p>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">.env</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="cm"># ── Remote destination ──────────────────────</span>
+<span class="var">GDRIVE_FOLDER</span>=<span class="str">rclone-google-backup:my-backups/vaultwarden</span>
+
+<span class="cm"># ── Retention & schedule ────────────────────</span>
+<span class="var">KEEP_BACKUPS</span>=<span class="num">10</span>
+<span class="var">BACKUP_CRON</span>=<span class="str">0 2 */3 * *</span>
+<span class="var">TZ</span>=<span class="str">Asia/Dhaka</span>
+
+<span class="cm"># ── Paths (space-separated, host paths) ─────</span>
+<span class="var">BACKUP_PATHS</span>=<span class="str">/home/ubuntu/docker/vaultwarden</span></pre>
+        </div>
+        <div class="env-grid">
+          <div class="env-row">
+            <span class="env-key">GDRIVE_FOLDER</span>
+            <span class="env-val">remote:bucket/subfolder</span>
+            <span class="env-desc">remote name must match what you set in rclone config</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">KEEP_BACKUPS</span>
+            <span class="env-val">10</span>
+            <span class="env-desc">Number of zip files to keep on Drive. Oldest deleted automatically.</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">BACKUP_CRON</span>
+            <span class="env-val">0 2 */3 * *</span>
+            <span class="env-desc">Every 3 days at 2 AM. Uses container timezone.</span>
+          </div>
+          <div class="env-row">
+            <span class="env-key">BACKUP_PATHS</span>
+            <span class="env-val">/path/one /path/two</span>
+            <span class="env-desc">Space-separated host paths. Script prepends /host/ internally.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="step">
+      <div class="step-number">05</div>
+      <div class="step-content">
+        <h3>Deploy with <span>docker compose</span></h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">yaml — docker-compose.yml</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="kw">services</span>:
+  <span class="var">rclone-backup</span>:
+    <span class="kw">image</span>: <span class="str">rclone-backup:latest</span>
+    <span class="kw">container_name</span>: <span class="str">rclone-backup</span>
+    <span class="kw">restart</span>: <span class="str">unless-stopped</span>
+    <span class="kw">user</span>: <span class="str">root</span>
+    <span class="kw">privileged</span>: <span class="kw">true</span>
+    <span class="kw">env_file</span>: <span class="str">.env</span>
+    <span class="kw">volumes</span>:
+      - <span class="str">./config/rclone.conf:/config/rclone.conf:ro</span>
+      - <span class="str">./logs:/var/log</span>
+      - <span class="str">/:/host:ro</span></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="kw">sudo docker compose up</span> -d
+
+<span class="cm"># Test immediately</span>
+<span class="kw">sudo docker exec</span> rclone-backup /usr/local/bin/backup.sh
+
+<span class="cm"># Watch logs</span>
+<span class="kw">tail</span> -f ~/docker/rclone/logs/vps-backup.log</pre>
+        </div>
+      </div>
+    </div>
+
+    <div id="config" class="divider"><div class="divider-line"></div><div class="divider-text">reference</div><div class="divider-line"></div></div>
+
+    <!-- Step 6 -->
+    <div class="step">
+      <div class="step-number">06</div>
+      <div class="step-content">
+        <h3>Useful <span>commands</span></h3>
+        <div class="code-block">
+          <div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <pre><span class="cm"># Run backup manually</span>
+<span class="kw">sudo docker exec</span> rclone-backup /usr/local/bin/backup.sh
+
+<span class="cm"># View logs</span>
+<span class="kw">tail</span> -f ~/docker/rclone/logs/vps-backup.log
+
+<span class="cm"># List backups on Drive</span>
+<span class="kw">sudo docker exec</span> rclone-backup \
+  rclone --config /config/rclone.conf \
+  lsf rclone-google-backup:my-backups/vaultwarden
+
+<span class="cm"># Rebuild image after changes</span>
+<span class="kw">sudo</span> ./build.sh
+<span class="kw">sudo docker compose down</span> && <span class="kw">sudo docker compose up</span> -d
+
+<span class="cm"># Change paths or schedule — edit .env then</span>
+<span class="kw">sudo docker compose down</span> && <span class="kw">sudo docker compose up</span> -d</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="step">
+      <div class="step-number">07</div>
+      <div class="step-content">
+        <h3>Cron <span>schedule reference</span></h3>
+        <div class="env-grid">
+          <div class="env-row"><span class="env-key">0 2 * * *</span><span class="env-val">Daily at 2 AM</span></div>
+          <div class="env-row"><span class="env-key">0 2 */3 * *</span><span class="env-val">Every 3 days at 2 AM</span></div>
+          <div class="env-row"><span class="env-key">0 */6 * * *</span><span class="env-val">Every 6 hours</span></div>
+          <div class="env-row"><span class="env-key">0 2 * * 0</span><span class="env-val">Weekly — Sunday 2 AM</span></div>
+          <div class="env-row"><span class="env-key">0 2 1 * *</span><span class="env-val">Monthly — 1st of month</span></div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<footer>
+  <p>built with rclone + docker · hosted on cloudflare pages · <a href="https://rclone.org" target="_blank">rclone docs</a></p>
+</footer>
+
+<script>
+  // Cursor
+  const cursor = document.getElementById('cursor');
+  const trail = document.getElementById('cursorTrail');
+  let mx = 0, my = 0, tx = 0, ty = 0;
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx - 6 + 'px';
+    cursor.style.top = my - 6 + 'px';
+  });
+  function animTrail() {
+    tx += (mx - tx) * 0.12;
+    ty += (my - ty) * 0.12;
+    trail.style.left = tx - 16 + 'px';
+    trail.style.top = ty - 16 + 'px';
+    requestAnimationFrame(animTrail);
+  }
+  animTrail();
+
+  // Progress bar
+  const bar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    bar.style.width = pct + '%';
+  });
+
+  // Scroll reveal
+  const steps = document.querySelectorAll('.step');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+  steps.forEach(s => observer.observe(s));
+
+  // Copy buttons
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
